@@ -8,7 +8,7 @@ import '../models/user_address.dart';
 import '../models/wishlist_board.dart';
 
 class LocalStorageService {
-  static const hasOpenedBeforeKey = 'hasOpenedBefore';
+  static const hasOpenedBeforeKey = 'hasOpenedBefore_v3';
   static const isSignedInKey = 'isSignedIn';
   static const userNameKey = 'userName';
   static const userEmailKey = 'userEmail';

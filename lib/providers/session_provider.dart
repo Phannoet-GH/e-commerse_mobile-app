@@ -53,6 +53,22 @@ class SessionProvider extends ChangeNotifier {
     await _storage.setHasOpenedBefore(true);
   }
 
+  Future<void> resetOnboarding() async {
+    _hasOpenedBefore = false;
+    _showFirstLaunchOnboarding = true;
+    _showAuth = false;
+    _showRegister = false;
+    await _storage.setHasOpenedBefore(false);
+    notifyListeners();
+  }
+
+  void showAppTour() {
+    _showFirstLaunchOnboarding = true;
+    _showAuth = false;
+    _showRegister = false;
+    notifyListeners();
+  }
+
   Future<void> continueAsGuest() async {
     await _markOpened();
     _showFirstLaunchOnboarding = false;
