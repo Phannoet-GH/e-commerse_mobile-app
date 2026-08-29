@@ -105,4 +105,59 @@ class User {
             'token' => 'jwt_' . bin2hex(random_bytes(24)),
         ];
     }
+
+    public static function requestPasswordResetOTP(string $email): array {
+        $email = trim($email);
+
+        // 1. Email validation
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new \Exception("Please provide a valid email address.");
+        }
+
+        // 2. Query user existence
+        $user = self::findByEmail($email);
+        if (!$user) {
+            throw new \Exception("No account found with this email address.");
+        }
+
+        // 3. Generate 6-digit OTP code & 10-minute expiry
+        $otp = (string)random_int(100000, 999999);
+        $expiresAt = time() + (10 * 60);
+
+        return [
+            'success' => true,
+            'email' => $email,
+            'otp' => $otp,
+            'expires_in_seconds' => 600,
+            'message' => "OTP recovery code generated successfully.",
+        ];
+    }
+
+    public static function resetPassword(string $email, string $newPassword): array {
+        $email = trim($email);
+        $newPassword = (string)$newPassword;
+
+        if (strlen($newPassword) < 8) {
+            throw new \Exception("Password must be at least 8 characters long.");
+        }
+
+        $user = self::findByEmail($email);
+        if (!$user) {
+            throw new \Exception("User not found.");
+        }
+
+        $pdo = Database::getConnection();
+        $hash = password_hash($newPassword, PASSWORD_BCRYPT);
+        $stmt = $pdo->prepare("UPDATE users SET password_hash = :hash WHERE id = :id");
+        $stmt->execute([
+            ':hash' => $hash,
+            ':id' => $user['id'],
+        ]);
+
+        return [
+            'success' => true,
+            'message' => "Password has been reset successfully.",
+        ];
+    }
 }
+

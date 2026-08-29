@@ -671,9 +671,10 @@ void main() {
     expect(signInTapped, isTrue);
   });
 
-  testWidgets('ForgotPasswordScreen validates email and displays confirmation card',
+  testWidgets('ForgotPasswordScreen validates email, handles OTP code entry, and resets password',
       (WidgetTester tester) async {
     String resetEmail = '';
+    String updatedPassword = '';
 
     await tester.pumpWidget(
       MaterialApp(
@@ -682,23 +683,49 @@ void main() {
           onResetRequested: (email) {
             resetEmail = email;
           },
+          onPasswordResetSuccess: (email, newPass) {
+            updatedPassword = newPass;
+          },
         ),
       ),
     );
     await tester.pumpAndSettle();
 
     expect(find.text('Forgot Password?'), findsOneWidget);
-    expect(find.text('Send Reset Instructions'), findsOneWidget);
+    expect(find.text('Send Recovery Code'), findsOneWidget);
 
-    // Enter email
+    // 1. Enter email
     await tester.enterText(find.byType(TextField), 'emma.wills@example.com');
-    await tester.tap(find.text('Send Reset Instructions'));
+    await tester.tap(find.text('Send Recovery Code'));
     await tester.pump(const Duration(milliseconds: 1000));
     await tester.pumpAndSettle();
 
     expect(resetEmail, 'emma.wills@example.com');
-    expect(find.text('Check Your Inbox'), findsOneWidget);
-    expect(find.text('Back to Sign In'), findsOneWidget);
+    expect(find.text('Enter OTP Code'), findsOneWidget);
+    expect(find.text('Verify OTP Code'), findsOneWidget);
+
+    // 2. Autofill / Enter OTP
+    await tester.tap(find.text('Autofill').first);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Verify OTP Code'));
+    await tester.pumpAndSettle();
+
+    // 3. Reset Password Screen
+    expect(find.text('Reset Password'), findsOneWidget);
+    expect(find.text('Update Password'), findsOneWidget);
+
+    final passFields = find.byType(TextField);
+    await tester.enterText(passFields.at(0), 'newPassword123');
+    await tester.enterText(passFields.at(1), 'newPassword123');
+
+    await tester.tap(find.text('Update Password'));
+    await tester.pump(const Duration(milliseconds: 1000));
+    await tester.pumpAndSettle();
+
+    expect(updatedPassword, 'newPassword123');
+    expect(find.text('Password Reset!'), findsOneWidget);
+    expect(find.text('Sign In with New Password'), findsOneWidget);
   });
 
   testWidgets('LoginScreen supports Google and Facebook 1-tap social login',
