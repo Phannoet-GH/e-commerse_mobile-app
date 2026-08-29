@@ -320,111 +320,251 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 16),
 
                 // 2. Hero Banner
-                Container(
-                  width: double.infinity,
-                  height: 185,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(26),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF1E1E2F),
-                        Color(0xFF2C2440),
-                        Color(0xFFFF2D6F),
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFF2D6F).withValues(alpha: 0.25),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        right: -20,
-                        bottom: -20,
-                        child: Container(
-                          width: 160,
-                          height: 160,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withValues(alpha: 0.08),
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(22),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFFC400),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Text(
-                                'LIMITED EDITION',
-                                style: TextStyle(
-                                  color: Color(0xFF1A1A1A),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.8,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              "Summer '26\nCollection",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
-                                height: 1.15,
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-                            ElevatedButton(
-                              onPressed: () => widget.onNavigateToExplore?.call(),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: const Color(0xFF1A1A1A),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 18,
-                                  vertical: 10,
-                                ),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                elevation: 0,
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    'Shop Now',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(width: 6),
-                                  Icon(Icons.arrow_forward_rounded, size: 14),
-                                ],
-                              ),
-                            ),
+                Builder(
+                  builder: (context) {
+                    final summerProduct = widget.products.isNotEmpty
+                        ? widget.products.firstWhere(
+                            (p) => p.category.toLowerCase() == 'apparel',
+                            orElse: () => widget.products.first,
+                          )
+                        : null;
+
+                    return Container(
+                      width: double.infinity,
+                      height: 185,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(26),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFF1E1E2F),
+                            Color(0xFF2C2440),
+                            Color(0xFFFF2D6F),
                           ],
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFF2D6F).withValues(alpha: 0.25),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            right: -10,
+                            bottom: -10,
+                            child: Container(
+                              width: 170,
+                              height: 170,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withValues(alpha: 0.06),
+                              ),
+                            ),
+                          ),
+                          // Banner Info & CTA
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 18, 145, 18),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFFC400),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'LIMITED EDITION',
+                                    style: TextStyle(
+                                      color: Color(0xFF1A1A1A),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.8,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  "Summer '26\nCollection",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w800,
+                                    height: 1.15,
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                ElevatedButton(
+                                  onPressed: () => widget.onNavigateToExplore?.call(),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    foregroundColor: const Color(0xFF1A1A1A),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 18,
+                                      vertical: 10,
+                                    ),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Shop Now',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(width: 6),
+                                      Icon(Icons.arrow_forward_rounded, size: 14),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Right Side: Summer 26 Product Image Showcase
+                          Positioned(
+                            right: 12,
+                            top: 12,
+                            bottom: 12,
+                            child: GestureDetector(
+                              onTap: () {
+                                if (summerProduct != null) {
+                                  widget.onProductTap(summerProduct);
+                                } else {
+                                  widget.onNavigateToExplore?.call();
+                                }
+                              },
+                              child: Container(
+                                width: 125,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.35),
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.35),
+                                      blurRadius: 14,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(18),
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      Image.network(
+                                        summerProduct?.image ??
+                                            'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80',
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) => Container(
+                                          color: const Color(0xFF2C2440),
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.shopping_bag_outlined,
+                                              color: Colors.white70,
+                                              size: 36,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Colors.transparent,
+                                              Colors.black.withValues(alpha: 0.65),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 7,
+                                            vertical: 3,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFFF2D6F),
+                                            borderRadius: BorderRadius.circular(8),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0xFFFF2D6F).withValues(alpha: 0.5),
+                                                blurRadius: 6,
+                                                offset: const Offset(0, 2),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Text(
+                                            summerProduct?.badge ?? 'HOT',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      if (summerProduct != null)
+                                        Positioned(
+                                          left: 8,
+                                          right: 8,
+                                          bottom: 8,
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                summerProduct.name,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 1),
+                                              Text(
+                                                '\$${summerProduct.price.toStringAsFixed(2)}',
+                                                style: const TextStyle(
+                                                  color: Color(0xFFFFC400),
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w900,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(height: 20),
 
