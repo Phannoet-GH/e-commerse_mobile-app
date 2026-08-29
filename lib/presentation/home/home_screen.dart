@@ -617,18 +617,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
 
-                      // 6. Luxury Dynamic Page Indicator Dots (Pill for Active, Dots for Inactive)
+                      // 6. Luxury Dynamic Page Indicator Dots (Centered)
                       Positioned(
                         bottom: 12,
-                        right: 18,
+                        left: 0,
+                        right: 0,
                         child: Row(
-                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: List.generate(5, (dotIndex) {
                             final isActive = dotIndex == _currentBannerIndex;
                             return AnimatedContainer(
                               duration: const Duration(milliseconds: 300),
                               margin: const EdgeInsets.symmetric(horizontal: 3),
-                              width: isActive ? 20 : 6,
+                              width: isActive ? 22 : 6,
                               height: 6,
                               decoration: BoxDecoration(
                                 color: isActive
@@ -638,8 +639,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 boxShadow: isActive
                                     ? [
                                         BoxShadow(
-                                          color: const Color(0xFFFF2D6F).withValues(alpha: 0.5),
-                                          blurRadius: 4,
+                                          color: const Color(0xFFFF2D6F).withValues(alpha: 0.55),
+                                          blurRadius: 5,
                                           offset: const Offset(0, 1),
                                         ),
                                       ]
