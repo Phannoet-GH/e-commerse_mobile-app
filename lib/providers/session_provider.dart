@@ -54,9 +54,11 @@ class SessionProvider extends ChangeNotifier {
 
   Future<void> continueAsGuest() async {
     _isGuest = true;
+    _isSignedIn = false;
     _showAuth = false;
     _showRegister = false;
     _showForgotPassword = false;
+    await _storage.clearGuestData();
     notifyListeners();
   }
 
@@ -248,6 +250,7 @@ class SessionProvider extends ChangeNotifier {
     _showRegister = false;
     _showForgotPassword = false;
     await _storage.setSignedIn(false);
+    await _storage.clearGuestData();
     notifyListeners();
   }
 }

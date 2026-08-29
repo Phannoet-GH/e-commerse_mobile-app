@@ -72,15 +72,34 @@ class HomeProvider extends ChangeNotifier {
   }
 
   /// Switch the active user session boundary to isolate private user data from guest/other users.
+  /// When a guest signs in/up, the temporary guest account is erased ("no more").
+  /// When a user enters guest mode, a brand new fresh guest account is created.
   void switchUserScope(String? userId) {
     _currentUserId = userId;
-    _cart = List<CartItem>.from(_storage.getCartItems(userId: userId));
-    _favorites = Set<int>.from(_storage.getFavorites(userId: userId));
-    _wishlists = List<WishlistBoard>.from(_storage.getWishlists(userId: userId));
-    _orders = List<Order>.from(_storage.getOrders(userId: userId));
-    _addresses = List<UserAddress>.from(_storage.getAddresses(userId: userId));
-    _notifications = List<NotificationItem>.from(_storage.getNotifications(userId: userId));
-    _searchHistory = List<String>.from(_storage.getSearchHistory(userId: userId));
+
+    if (userId != null && userId.isNotEmpty) {
+      // 1. Registered / Signed-in user scope:
+      // Wipe the guest temporary account data from storage.
+      _storage.clearGuestData();
+
+      _cart = List<CartItem>.from(_storage.getCartItems(userId: userId));
+      _favorites = Set<int>.from(_storage.getFavorites(userId: userId));
+      _wishlists = List<WishlistBoard>.from(_storage.getWishlists(userId: userId));
+      _orders = List<Order>.from(_storage.getOrders(userId: userId));
+      _addresses = List<UserAddress>.from(_storage.getAddresses(userId: userId));
+      _notifications = List<NotificationItem>.from(_storage.getNotifications(userId: userId));
+      _searchHistory = List<String>.from(_storage.getSearchHistory(userId: userId));
+    } else {
+      // 2. Guest Account scope:
+      _cart = List<CartItem>.from(_storage.getCartItems(userId: null));
+      _favorites = Set<int>.from(_storage.getFavorites(userId: null));
+      _wishlists = List<WishlistBoard>.from(_storage.getWishlists(userId: null));
+      _orders = List<Order>.from(_storage.getOrders(userId: null));
+      _addresses = List<UserAddress>.from(_storage.getAddresses(userId: null));
+      _notifications = List<NotificationItem>.from(_storage.getNotifications(userId: null));
+      _searchHistory = List<String>.from(_storage.getSearchHistory(userId: null));
+    }
+
     _appliedPromoCode = null;
     _promoDiscountPercent = 0.0;
     _promoDiscountFlat = 0.0;
@@ -347,7 +366,7 @@ class HomeProvider extends ChangeNotifier {
     // Create confirmation notification
     final notif = NotificationItem(
       id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
-      title: 'Order Confirmed! 📦',
+      title: 'Order Confirmed!',
       message: 'Order ${order.orderNumber} placed for \$${order.totalAmount.toStringAsFixed(2)}. Tracking: ${order.trackingNumber}',
       time: 'Just now',
       type: 'order',

@@ -63,6 +63,18 @@ class LocalStorageService {
     }
   }
 
+  /// Completely wipe all guest temporary data (cart, favorites, wishlists, orders, addresses, search history, notifications)
+  /// Ensuring guest account is erased when converting to a registered user, and a fresh clean state on next guest entry.
+  Future<void> clearGuestData() async {
+    await _prefs?.remove(_scopedKey(cartItemsBaseKey, null));
+    await _prefs?.remove(_scopedKey(favoritesBaseKey, null));
+    await _prefs?.remove(_scopedKey(wishlistsBaseKey, null));
+    await _prefs?.remove(_scopedKey(ordersBaseKey, null));
+    await _prefs?.remove(_scopedKey(addressesBaseKey, null));
+    await _prefs?.remove(_scopedKey(searchHistoryBaseKey, null));
+    await _prefs?.remove(_scopedKey(notificationsBaseKey, null));
+  }
+
   // --- Registered Users Persistence & Verification ---
   Map<String, Map<String, dynamic>> getRegisteredUsers() {
     final defaultUsers = <String, Map<String, dynamic>>{
