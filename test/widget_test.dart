@@ -679,6 +679,7 @@ void main() {
       MaterialApp(
         home: ForgotPasswordScreen(
           onBackToSignIn: () {},
+          fixedOtpForTesting: '849204',
           onResetRequested: (email) {
             resetEmail = email;
           },
@@ -696,18 +697,21 @@ void main() {
     // 1. Enter email
     await tester.enterText(find.byType(TextField), 'emma.wills@example.com');
     await tester.tap(find.text('Send Recovery Code'));
-    await tester.pump(const Duration(milliseconds: 1000));
+    await tester.pump(const Duration(milliseconds: 100));
     await tester.pumpAndSettle();
 
     expect(resetEmail, 'emma.wills@example.com');
-    expect(find.text('Enter OTP Code'), findsOneWidget);
-    expect(find.text('Verify OTP Code'), findsOneWidget);
+    expect(find.text('Enter Verification Code'), findsOneWidget);
+    expect(find.text('Verify Code'), findsOneWidget);
 
-    // 2. Autofill / Enter OTP
-    await tester.tap(find.text('Autofill').first);
+    // 2. Enter real 6-digit verification code into the 6 PIN boxes
+    final otpFields = find.byType(TextField);
+    for (int i = 0; i < 6; i++) {
+      await tester.enterText(otpFields.at(i), '849204'[i]);
+    }
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Verify OTP Code'));
+    await tester.tap(find.text('Verify Code'));
     await tester.pumpAndSettle();
 
     // 3. Reset Password Screen
@@ -719,7 +723,7 @@ void main() {
     await tester.enterText(passFields.at(1), 'newPassword123');
 
     await tester.tap(find.text('Update Password'));
-    await tester.pump(const Duration(milliseconds: 1000));
+    await tester.pump(const Duration(milliseconds: 100));
     await tester.pumpAndSettle();
 
     expect(updatedPassword, 'newPassword123');

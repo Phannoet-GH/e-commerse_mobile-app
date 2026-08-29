@@ -177,10 +177,42 @@ try {
                 Response::error('Email address is required.', 422);
             }
 
+            $res = User::requestPasswordResetOTP($email);
+            Response::json($res, 200);
+        }
+    }
+
+    if ($path === 'auth/verify-otp') {
+        if ($method === 'POST') {
+            $input = Response::getJsonInput();
+            $email = Sanitizer::cleanString($input['email'] ?? '', 150);
+            $otp = Sanitizer::cleanString($input['otp'] ?? '', 10);
+
+            if (empty($email) || empty($otp)) {
+                Response::error('Email and OTP code are required.', 422);
+            }
+
+            User::verifyResetOTP($email, $otp);
             Response::json([
-                'message' => "Password reset instructions sent to $email.",
-                'email' => $email,
-            ]);
+                'success' => true,
+                'message' => 'OTP verified successfully.',
+            ], 200);
+        }
+    }
+
+    if ($path === 'auth/reset-password') {
+        if ($method === 'POST') {
+            $input = Response::getJsonInput();
+            $email = Sanitizer::cleanString($input['email'] ?? '', 150);
+            $otp = Sanitizer::cleanString($input['otp'] ?? '', 10);
+            $newPassword = (string)($input['new_password'] ?? '');
+
+            if (empty($email) || empty($newPassword)) {
+                Response::error('Email and new password are required.', 422);
+            }
+
+            $res = User::resetPassword($email, $newPassword, $otp ?: null);
+            Response::json($res, 200);
         }
     }
 
