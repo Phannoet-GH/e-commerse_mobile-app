@@ -124,326 +124,353 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF9F9FB),
       body: SafeArea(
         bottom: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(18, 16, 18, 110),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Profile',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF1A1A1A),
-                    ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 📌 1. PINNED NON-SCROLLABLE PROFILE HEADER & STATS
+            Container(
+              padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9F9FB),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
                   ),
-                  if (isSignedIn)
-                    IconButton(
-                      onPressed: () => _showEditProfileDialog(context),
-                      icon: const Icon(Icons.edit_outlined),
-                      color: const Color(0xFF1A1A1A),
-                      tooltip: 'Edit Profile',
-                    ),
                 ],
               ),
-              const SizedBox(height: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Profile',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1A1A1A),
+                        ),
+                      ),
+                      if (isSignedIn)
+                        IconButton(
+                          onPressed: () => _showEditProfileDialog(context),
+                          icon: const Icon(Icons.edit_outlined),
+                          color: const Color(0xFF1A1A1A),
+                          tooltip: 'Edit Profile',
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
 
-              // Profile / Guest Banner Card
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(22),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 14,
-                      offset: const Offset(0, 6),
+                  // Profile / Guest Banner Card
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                child: isSignedIn
-                    ? Row(
-                        children: [
-                          Container(
-                            width: 64,
-                            height: 64,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [Color(0xFFFF2D6F), Color(0xFF6C63FF)],
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                session.userName.isNotEmpty ? session.userName[0].toUpperCase() : 'U',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  session.userName,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF1A1A1A),
+                    child: isSignedIn
+                        ? Row(
+                            children: [
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: [Color(0xFFFF2D6F), Color(0xFF6C63FF)],
                                   ),
                                 ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  session.userEmail,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFFF0F5),
-                                    borderRadius: BorderRadius.circular(999),
-                                  ),
-                                  child: const Text(
-                                    'VIP Gold Member',
-                                    style: TextStyle(
-                                      fontSize: 10,
+                                child: Center(
+                                  child: Text(
+                                    session.userName.isNotEmpty ? session.userName[0].toUpperCase() : 'U',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFFFF2D6F),
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      )
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 54,
-                                height: 54,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.person_outline_rounded, color: Colors.grey, size: 28),
                               ),
                               const SizedBox(width: 14),
-                              const Expanded(
+                              Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Guest Shopper',
-                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                      session.userName,
+                                      style: const TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1A1A1A),
+                                      ),
                                     ),
-                                    SizedBox(height: 2),
+                                    const SizedBox(height: 2),
                                     Text(
-                                      'Sign in to sync your bag, orders & rewards',
-                                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                                      session.userEmail,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFFFF0F5),
+                                        borderRadius: BorderRadius.circular(999),
+                                      ),
+                                      child: const Text(
+                                        'VIP Gold Member',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFFFF2D6F),
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
                             ],
-                          ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 46,
-                            child: ElevatedButton(
-                              onPressed: () => context.read<SessionProvider>().openSignIn(),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFFF2D6F),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.person_outline_rounded, color: Colors.grey, size: 26),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Guest Shopper',
+                                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
+                                        ),
+                                        SizedBox(height: 2),
+                                        Text(
+                                          'Sign in to sync your bag, orders & rewards',
+                                          style: TextStyle(fontSize: 11, color: Colors.grey),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 42,
+                                child: ElevatedButton(
+                                  onPressed: () => context.read<SessionProvider>().openSignIn(),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFFF2D6F),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  child: const Text('Sign In / Register', style: TextStyle(fontWeight: FontWeight.bold)),
                                 ),
                               ),
-                              child: const Text('Sign In / Register', style: TextStyle(fontWeight: FontWeight.bold)),
-                            ),
+                            ],
                           ),
-                        ],
-                      ),
-              ),
-              const SizedBox(height: 18),
+                  ),
+                  const SizedBox(height: 14),
 
-              // Stats Row
-              Row(
-                children: [
-                  _StatCard(
-                    label: 'Orders',
-                    value: '${homeProvider.orders.length}',
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => OrdersScreen(
-                            orders: homeProvider.orders,
-                            onReorder: (order) => homeProvider.reorder(order),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 10),
-                  _StatCard(
-                    label: 'Saved',
-                    value: '${homeProvider.favorites.length}',
-                    onTap: () => homeProvider.setSelectedIndex(3),
-                  ),
-                  const SizedBox(width: 10),
-                  const _StatCard(
-                    label: 'Points',
-                    value: '1,450',
+                  // Stats Row
+                  Row(
+                    children: [
+                      _StatCard(
+                        label: 'Orders',
+                        value: '${homeProvider.orders.length}',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => OrdersScreen(
+                                orders: homeProvider.orders,
+                                onReorder: (order) => homeProvider.reorder(order),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 10),
+                      _StatCard(
+                        label: 'Saved',
+                        value: '${homeProvider.favorites.length}',
+                        onTap: () => homeProvider.setSelectedIndex(3),
+                      ),
+                      const SizedBox(width: 10),
+                      const _StatCard(
+                        label: 'Points',
+                        value: '1,450',
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 22),
+            ),
 
-              // Menu List
-              const Text(
-                'My Account',
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A1A1A),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              _buildMenuItem(
-                icon: Icons.receipt_long_outlined,
-                title: 'My Orders',
-                subtitle: '${homeProvider.orders.length} order history',
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => OrdersScreen(
-                        orders: homeProvider.orders,
-                        onReorder: (order) => homeProvider.reorder(order),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-
-              _buildMenuItem(
-                icon: Icons.location_on_outlined,
-                title: 'Shipping Addresses',
-                subtitle: '${homeProvider.addresses.length} saved destinations',
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const AddressManagerScreen(),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-
-              _buildMenuItem(
-                icon: Icons.favorite_border_rounded,
-                title: 'My Favorites',
-                subtitle: '${homeProvider.favorites.length} liked items',
-                onTap: () => homeProvider.setSelectedIndex(3),
-              ),
-              const SizedBox(height: 10),
-
-              _buildMenuItem(
-                icon: Icons.bookmark_added_outlined,
-                title: 'My Wishlist Boards',
-                subtitle: '${homeProvider.wishlists.length} curated collections',
-                onTap: () => homeProvider.setSelectedIndex(3),
-              ),
-              const SizedBox(height: 10),
-
-              _buildMenuItem(
-                icon: Icons.notifications_none_rounded,
-                title: 'Notifications',
-                subtitle: '${homeProvider.unreadNotificationsCount} unread updates',
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const NotificationsScreen(),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-
-              _buildMenuItem(
-                icon: Icons.help_outline_rounded,
-                title: 'Help & FAQs',
-                subtitle: 'Returns, shipping, and 24/7 support',
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const FaqScreen(),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-
-              _buildMenuItem(
-                icon: Icons.auto_awesome_outlined,
-                title: 'App Tour & Welcome',
-                subtitle: 'Revisit onboarding & luxury features',
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => OnboardingScreen(
-                        onSignInOrRegister: () => Navigator.of(context).pop(),
-                        onContinueAsGuest: () => Navigator.of(context).pop(),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 22),
-
-              // Log Out Button (Only when signed in)
-              if (isSignedIn)
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: OutlinedButton(
-                    onPressed: () => _confirmLogout(context),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFFFF2D6F), width: 1.5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    child: const Text(
-                      'Sign Out',
+            // ↕️ 2. SCROLLABLE CONTENT (STARTING ONLY FROM "MY ACCOUNT")
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 110),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'My Account',
                       style: TextStyle(
-                        color: Color(0xFFFF2D6F),
+                        fontSize: 17,
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                        color: Color(0xFF1A1A1A),
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+
+                    _buildMenuItem(
+                      icon: Icons.receipt_long_outlined,
+                      title: 'My Orders',
+                      subtitle: '${homeProvider.orders.length} order history',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => OrdersScreen(
+                              orders: homeProvider.orders,
+                              onReorder: (order) => homeProvider.reorder(order),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 10),
+
+                    _buildMenuItem(
+                      icon: Icons.location_on_outlined,
+                      title: 'Shipping Addresses',
+                      subtitle: '${homeProvider.addresses.length} saved destinations',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const AddressManagerScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 10),
+
+                    _buildMenuItem(
+                      icon: Icons.favorite_border_rounded,
+                      title: 'My Favorites',
+                      subtitle: '${homeProvider.favorites.length} liked items',
+                      onTap: () => homeProvider.setSelectedIndex(3),
+                    ),
+                    const SizedBox(height: 10),
+
+                    _buildMenuItem(
+                      icon: Icons.bookmark_added_outlined,
+                      title: 'My Wishlist Boards',
+                      subtitle: '${homeProvider.wishlists.length} curated collections',
+                      onTap: () => homeProvider.setSelectedIndex(3),
+                    ),
+                    const SizedBox(height: 10),
+
+                    _buildMenuItem(
+                      icon: Icons.notifications_none_rounded,
+                      title: 'Notifications',
+                      subtitle: '${homeProvider.unreadNotificationsCount} unread updates',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const NotificationsScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 10),
+
+                    _buildMenuItem(
+                      icon: Icons.help_outline_rounded,
+                      title: 'Help & FAQs',
+                      subtitle: 'Returns, shipping, and 24/7 support',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const FaqScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 10),
+
+                    _buildMenuItem(
+                      icon: Icons.auto_awesome_outlined,
+                      title: 'App Tour & Welcome',
+                      subtitle: 'Revisit onboarding & luxury features',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => OnboardingScreen(
+                              onSignInOrRegister: () => Navigator.of(context).pop(),
+                              onContinueAsGuest: () => Navigator.of(context).pop(),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 22),
+
+                    // Log Out Button (Only when signed in)
+                    if (isSignedIn)
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: OutlinedButton(
+                          onPressed: () => _confirmLogout(context),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFFFF2D6F), width: 1.5),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: const Text(
+                            'Sign Out',
+                            style: TextStyle(
+                              color: Color(0xFFFF2D6F),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                  ],
                 ),
-              const SizedBox(height: 16),
-            ],
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );
