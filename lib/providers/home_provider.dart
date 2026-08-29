@@ -46,6 +46,8 @@ class HomeProvider extends ChangeNotifier {
   List<CartItem> get cart => _cart;
   Set<int> get favorites => _favorites;
   List<WishlistBoard> get wishlists => _wishlists;
+  int get totalWishlistItemsCount =>
+      _wishlists.fold(0, (sum, w) => sum + w.productIds.length);
   List<Order> get orders => _orders;
   List<UserAddress> get addresses => _addresses;
   List<NotificationItem> get notifications => _notifications;

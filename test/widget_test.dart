@@ -458,6 +458,10 @@ void main() {
     final provider = HomeProvider(storage: storage);
     await tester.pump(const Duration(milliseconds: 100));
 
+    // Verify default wishlist begins with 0 items
+    expect(provider.totalWishlistItemsCount, 0);
+    expect(provider.wishlists.first.productIds, isEmpty);
+
     // 1. Test Favorites (❤️)
     provider.toggleFavorite(1);
     expect(provider.isFavorite(1), isTrue);

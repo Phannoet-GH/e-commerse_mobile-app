@@ -15,7 +15,7 @@ class LocalStorageService {
   static const userPhoneKey = 'userPhone';
   static const cartItemsKey = 'cartItems_v2';
   static const favoritesKey = 'favorites_v2';
-  static const wishlistsKey = 'wishlists_v1';
+  static const wishlistsKey = 'wishlists_v2';
   static const ordersKey = 'orders_v2';
   static const addressesKey = 'addresses_v2';
   static const searchHistoryKey = 'searchHistory_v2';
@@ -106,18 +106,9 @@ class LocalStorageService {
         name: 'My Wishlist',
         description: 'Items saved to buy soon',
         icon: '✨',
-        productIds: [1, 4],
-        createdAt: DateTime.now().subtract(const Duration(days: 2)),
+        productIds: [],
+        createdAt: DateTime.now(),
         isDefault: true,
-      ),
-      WishlistBoard(
-        id: 'wish_summer',
-        name: 'Summer Vacation Outfits',
-        description: 'Light linen, aviators and runners for travel',
-        icon: '☀️',
-        productIds: [6, 8, 3],
-        createdAt: DateTime.now().subtract(const Duration(days: 5)),
-        isDefault: false,
       ),
     ];
   }
