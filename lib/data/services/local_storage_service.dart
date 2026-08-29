@@ -75,6 +75,9 @@ class LocalStorageService {
     await _prefs?.remove(_scopedKey(notificationsBaseKey, null));
   }
 
+  /// Alias for clearGuestData
+  Future<void> clearGuestAccount() async => clearGuestData();
+
   // --- Registered Users Persistence & Verification ---
   Map<String, Map<String, dynamic>> getRegisteredUsers() {
     final defaultUsers = <String, Map<String, dynamic>>{
