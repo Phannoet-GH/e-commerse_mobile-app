@@ -397,15 +397,16 @@ void main() {
       ),
     );
 
-    // Initial state: shows products under All
-    expect(find.text('Oversized Hoodie'), findsWidgets);
+    // Initial state: shows both products under All
+    expect(find.text('Oversized Hoodie'), findsOneWidget);
     expect(find.text('Sapphire Watch'), findsOneWidget);
 
     // Tap on Accessories chip
     await tester.tap(find.text('Accessories'));
     await tester.pumpAndSettle();
 
-    // Now Accessories product is active and visible
+    // Now only Accessories product is visible
+    expect(find.text('Oversized Hoodie'), findsNothing);
     expect(find.text('Sapphire Watch'), findsOneWidget);
   });
 
