@@ -69,13 +69,8 @@ class _ECommerceAppState extends State<ECommerceApp> {
     if (session.showForgotPassword) {
       return ForgotPasswordScreen(
         onBackToSignIn: () => context.read<SessionProvider>().backToSignIn(),
-        onResetRequested: (email) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Recovery email sent to $email'),
-              backgroundColor: const Color(0xFF1E1E2F),
-            ),
-          );
+        onPasswordResetSuccess: (email, newPassword) {
+          context.read<SessionProvider>().backToSignIn();
         },
       );
     }
