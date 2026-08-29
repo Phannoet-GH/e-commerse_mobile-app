@@ -44,6 +44,77 @@ class _HomeScreenState extends State<HomeScreen> {
   late Timer _countdownTimer;
   Duration _timeLeft = const Duration(hours: 9, minutes: 42, seconds: 18);
 
+  final PageController _bannerController = PageController();
+  int _currentBannerIndex = 0;
+  late Timer _bannerTimer;
+
+  static const List<Map<String, dynamic>> _defaultBannerSlides = [
+    {
+      'tag': 'LIMITED EDITION',
+      'tagColor': Color(0xFFFFC400),
+      'title': "Summer '26\nCollection",
+      'badge': 'UP TO 40% OFF',
+      'category': 'Apparel',
+      'fallbackImage':
+          'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80',
+    },
+    {
+      'tag': 'NEW ARRIVAL',
+      'tagColor': Color(0xFF00E676),
+      'title': "Urban Streetwear\nEssentials",
+      'badge': 'HOT DROP',
+      'category': 'Apparel',
+      'fallbackImage':
+          'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=1200&q=80',
+    },
+    {
+      'tag': 'LUXURY TIMEPIECES',
+      'tagColor': Color(0xFF40C4FF),
+      'title': "Sapphire Chrono\nWatch Edition",
+      'badge': 'VIP EXCLUSIVE',
+      'category': 'Accessories',
+      'fallbackImage':
+          'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=1200&q=80',
+    },
+    {
+      'tag': 'RESORT LINEN',
+      'tagColor': Color(0xFFFFAB40),
+      'title': "Breezy Riviera\nVacation Fit",
+      'badge': 'NEW SEASON',
+      'category': 'Apparel',
+      'fallbackImage':
+          'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=1200&q=80',
+    },
+    {
+      'tag': 'SIGNATURE LEATHER',
+      'tagColor': Color(0xFFFF4081),
+      'title': "Handcrafted Luxe\nLeather Goods",
+      'badge': 'BESTSELLER',
+      'category': 'Accessories',
+      'fallbackImage':
+          'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=1200&q=80',
+    },
+  ];
+
+  Map<String, dynamic> _getSlideData(int index) {
+    final base = _defaultBannerSlides[index % _defaultBannerSlides.length];
+    String imageUrl = base['fallbackImage'] as String;
+    if (widget.products.isNotEmpty) {
+      final matched = widget.products
+          .where((p) => p.category.toLowerCase() == (base['category'] as String).toLowerCase())
+          .toList();
+      if (matched.isNotEmpty) {
+        imageUrl = matched[index % matched.length].image;
+      } else if (index < widget.products.length) {
+        imageUrl = widget.products[index].image;
+      }
+    }
+    return {
+      ...base,
+      'image': imageUrl,
+    };
+  }
+
   @override
   void initState() {
     super.initState();
@@ -56,11 +127,23 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
     });
+
+    _bannerTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (!mounted || !_bannerController.hasClients) return;
+      final nextIndex = (_currentBannerIndex + 1) % 5;
+      _bannerController.animateToPage(
+        nextIndex,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOutCubic,
+      );
+    });
   }
 
   @override
   void dispose() {
     _countdownTimer.cancel();
+    _bannerTimer.cancel();
+    _bannerController.dispose();
     super.dispose();
   }
 
@@ -319,220 +402,255 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // 2. Hero Banner (Full Background Product Image)
-                Builder(
-                  builder: (context) {
-                    final summerProduct = widget.products.isNotEmpty
-                        ? widget.products.firstWhere(
-                            (p) => p.category.toLowerCase() == 'apparel',
-                            orElse: () => widget.products.first,
-                          )
-                        : null;
-                    final bgImageUrl = summerProduct?.image ??
-                        'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=1200&q=80';
-
-                    return GestureDetector(
-                      onTap: () => widget.onNavigateToExplore?.call(),
-                      child: Container(
-                        width: double.infinity,
-                        height: 195,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(26),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFFF2D6F).withValues(alpha: 0.22),
-                              blurRadius: 22,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(26),
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              // 1. Full-bleed Background Product / Fashion Image
-                              Image.network(
-                                bgImageUrl,
-                                fit: BoxFit.cover,
-                                alignment: Alignment.centerRight,
-                                errorBuilder: (context, error, stackTrace) => Container(
-                                  decoration: const BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        Color(0xFF1E1E2F),
-                                        Color(0xFF2C2440),
-                                        Color(0xFFFF2D6F),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              // 2. Luxury Dark Gradient Overlay for Maximum Text Contrast
-                              Container(
+                // 2. Hero Banner Slider (5 Luxury Product Slides with Auto-Play & Indicators)
+                SizedBox(
+                  width: double.infinity,
+                  height: 200,
+                  child: Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(26),
+                        child: PageView.builder(
+                          controller: _bannerController,
+                          itemCount: 5,
+                          onPageChanged: (idx) {
+                            setState(() => _currentBannerIndex = idx);
+                          },
+                          itemBuilder: (context, index) {
+                            final slide = _getSlideData(index);
+                            return GestureDetector(
+                              onTap: () => widget.onNavigateToExplore?.call(),
+                              child: Container(
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.centerLeft,
-                                    end: Alignment.centerRight,
-                                    colors: [
-                                      const Color(0xFF0F0E17).withValues(alpha: 0.94),
-                                      const Color(0xFF1E1E2F).withValues(alpha: 0.82),
-                                      const Color(0xFF2C2440).withValues(alpha: 0.45),
-                                      Colors.transparent,
-                                    ],
-                                    stops: const [0.0, 0.45, 0.72, 1.0],
-                                  ),
-                                ),
-                              ),
-
-                              // 3. Subtle bottom vignette gradient
-                              Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.bottomCenter,
-                                    end: Alignment.topCenter,
-                                    colors: [
-                                      Colors.black.withValues(alpha: 0.5),
-                                      Colors.transparent,
-                                    ],
-                                    stops: const [0.0, 0.45],
-                                  ),
-                                ),
-                              ),
-
-                              // 4. Floating Top Right Discount / Season Tag
-                              Positioned(
-                                top: 16,
-                                right: 16,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.45),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.25),
-                                      width: 1,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFFFF2D6F).withValues(alpha: 0.22),
+                                      blurRadius: 22,
+                                      offset: const Offset(0, 10),
                                     ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        width: 6,
-                                        height: 6,
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFFFF2D6F),
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      const Text(
-                                        'UP TO 40% OFF',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w800,
-                                          letterSpacing: 0.6,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                  ],
                                 ),
-                              ),
-
-                              // 5. Left Content: Limited Edition Tag, Title & Action Button
-                              Padding(
-                                padding: const EdgeInsets.all(22),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                                child: Stack(
+                                  fit: StackFit.expand,
                                   children: [
+                                    // 1. Full-bleed Background Product / Fashion Image
+                                    Image.network(
+                                      slide['image'] as String,
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.centerRight,
+                                      errorBuilder: (context, error, stackTrace) => Container(
+                                        decoration: const BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              Color(0xFF1E1E2F),
+                                              Color(0xFF2C2440),
+                                              Color(0xFFFF2D6F),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                    // 2. Multi-stop Dark Gradient Overlay for Maximum Text Readability
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFFFC400),
-                                        borderRadius: BorderRadius.circular(8),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: const Color(0xFFFFC400).withValues(alpha: 0.35),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: const Text(
-                                        'LIMITED EDITION',
-                                        style: TextStyle(
-                                          color: Color(0xFF1A1A1A),
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: 0.8,
+                                        gradient: LinearGradient(
+                                          begin: Alignment.centerLeft,
+                                          end: Alignment.centerRight,
+                                          colors: [
+                                            const Color(0xFF0F0E17).withValues(alpha: 0.94),
+                                            const Color(0xFF1E1E2F).withValues(alpha: 0.82),
+                                            const Color(0xFF2C2440).withValues(alpha: 0.40),
+                                            Colors.transparent,
+                                          ],
+                                          stops: const [0.0, 0.45, 0.72, 1.0],
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: 8),
-                                    const Text(
-                                      "Summer '26\nCollection",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 26,
-                                        fontWeight: FontWeight.w900,
-                                        height: 1.12,
-                                        letterSpacing: -0.3,
-                                        shadows: [
-                                          Shadow(
-                                            color: Colors.black45,
-                                            blurRadius: 10,
-                                            offset: Offset(0, 2),
-                                          ),
-                                        ],
+
+                                    // 3. Subtle bottom vignette gradient
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.bottomCenter,
+                                          end: Alignment.topCenter,
+                                          colors: [
+                                            Colors.black.withValues(alpha: 0.45),
+                                            Colors.transparent,
+                                          ],
+                                          stops: const [0.0, 0.45],
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(height: 14),
-                                    ElevatedButton(
-                                      onPressed: () => widget.onNavigateToExplore?.call(),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: const Color(0xFF1A1A1A),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 18,
-                                          vertical: 10,
-                                        ),
-                                        minimumSize: Size.zero,
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                        shape: RoundedRectangleBorder(
+
+                                    // 4. Floating Top Right Discount / Season Tag
+                                    Positioned(
+                                      top: 16,
+                                      right: 16,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withValues(alpha: 0.45),
                                           borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: Colors.white.withValues(alpha: 0.25),
+                                            width: 1,
+                                          ),
                                         ),
-                                        elevation: 4,
-                                        shadowColor: Colors.black26,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              width: 6,
+                                              height: 6,
+                                              decoration: const BoxDecoration(
+                                                color: Color(0xFFFF2D6F),
+                                                shape: BoxShape.circle,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              slide['badge'] as String,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w800,
+                                                letterSpacing: 0.6,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      child: const Row(
-                                        mainAxisSize: MainAxisSize.min,
+                                    ),
+
+                                    // 5. Left Content: Tag, Title & Action Button
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(22, 18, 22, 22),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
-                                          Text(
-                                            'Shop Now',
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.bold,
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: slide['tagColor'] as Color,
+                                              borderRadius: BorderRadius.circular(8),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: (slide['tagColor'] as Color).withValues(alpha: 0.35),
+                                                  blurRadius: 8,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Text(
+                                              slide['tag'] as String,
+                                              style: const TextStyle(
+                                                color: Color(0xFF1A1A1A),
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w900,
+                                                letterSpacing: 0.8,
+                                              ),
                                             ),
                                           ),
-                                          SizedBox(width: 6),
-                                          Icon(Icons.arrow_forward_rounded, size: 14),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            slide['title'] as String,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.w900,
+                                              height: 1.12,
+                                              letterSpacing: -0.3,
+                                              shadows: [
+                                                Shadow(
+                                                  color: Colors.black45,
+                                                  blurRadius: 10,
+                                                  offset: Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          ElevatedButton(
+                                            onPressed: () => widget.onNavigateToExplore?.call(),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.white,
+                                              foregroundColor: const Color(0xFF1A1A1A),
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 18,
+                                                vertical: 9,
+                                              ),
+                                              minimumSize: Size.zero,
+                                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(20),
+                                              ),
+                                              elevation: 4,
+                                              shadowColor: Colors.black26,
+                                            ),
+                                            child: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  'Shop Now',
+                                                  style: TextStyle(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                SizedBox(width: 6),
+                                                Icon(Icons.arrow_forward_rounded, size: 14),
+                                              ],
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
                       ),
-                    );
-                  },
+
+                      // 6. Luxury Dynamic Page Indicator Dots (Pill for Active, Dots for Inactive)
+                      Positioned(
+                        bottom: 12,
+                        right: 18,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(5, (dotIndex) {
+                            final isActive = dotIndex == _currentBannerIndex;
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin: const EdgeInsets.symmetric(horizontal: 3),
+                              width: isActive ? 20 : 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? const Color(0xFFFF2D6F)
+                                    : Colors.white.withValues(alpha: 0.45),
+                                borderRadius: BorderRadius.circular(3),
+                                boxShadow: isActive
+                                    ? [
+                                        BoxShadow(
+                                          color: const Color(0xFFFF2D6F).withValues(alpha: 0.5),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 1),
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 20),
 
