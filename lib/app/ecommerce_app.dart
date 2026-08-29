@@ -45,7 +45,7 @@ class _ECommerceAppState extends State<ECommerceApp> {
   Widget _home(SessionProvider session, HomeProvider homeProvider) {
     if (!session.isReady) {
       return SplashScreen(
-        onGetStarted: () {},
+        onInitialized: () {},
       );
     }
 

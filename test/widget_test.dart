@@ -529,29 +529,27 @@ void main() {
     expect(find.text('Already have an account? Sign In'), findsOneWidget);
   });
 
-  testWidgets('SplashScreen renders luxury brand elements and handles Get Started',
+  testWidgets('SplashScreen renders luxury brand elements and auto-initializes',
       (WidgetTester tester) async {
-    bool getStartedTapped = false;
+    bool initialized = false;
 
     await tester.pumpWidget(
       MaterialApp(
         home: SplashScreen(
-          onGetStarted: () {
-            getStartedTapped = true;
+          duration: const Duration(milliseconds: 100),
+          onInitialized: () {
+            initialized = true;
           },
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     expect(find.text('LuxeCart'), findsOneWidget);
-    expect(find.text('✨ SE SHOP COLLECTION 2026'), findsOneWidget);
-    expect(find.text('Get Started'), findsOneWidget);
+    expect(find.text('CURATED LUXURY & MODERN ESSENTIALS'), findsOneWidget);
 
-    await tester.tap(find.text('Get Started'));
-    await tester.pumpAndSettle();
-
-    expect(getStartedTapped, isTrue);
+    await tester.pump(const Duration(milliseconds: 150));
+    expect(initialized, isTrue);
   });
 
   testWidgets('OnboardingScreen advances through carousel slides and triggers callbacks',
@@ -575,7 +573,7 @@ void main() {
 
     // Slide 1
     expect(find.text('Welcome to LuxeCart'), findsOneWidget);
-    expect(find.text('CURATED LUXURY'), findsOneWidget);
+    expect(find.text('✨ SE SHOP COLLECTION 2026'), findsOneWidget);
     expect(find.text('Continue as Guest'), findsOneWidget);
 
     // Tap Continue as Guest

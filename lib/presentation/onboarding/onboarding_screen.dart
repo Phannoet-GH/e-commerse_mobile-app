@@ -20,22 +20,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<_OnboardingPageData> _pages = const [
     _OnboardingPageData(
-      icon: Icons.shopping_bag_outlined,
+      icon: Icons.shopping_bag_rounded,
       title: 'Welcome to LuxeCart',
-      subtitle: 'Shop curated fashion, accessories, and everyday essentials - all in one place.',
-      badge: 'CURATED LUXURY',
+      subtitle: 'Discover trending fashion, tech & luxury accessories crafted for your elevated lifestyle.',
+      badge: '✨ SE SHOP COLLECTION 2026',
     ),
     _OnboardingPageData(
       icon: Icons.local_offer_outlined,
       title: 'Exclusive Deals & Vouchers',
       subtitle: 'Unlock VIP discounts, use promo codes like LUXE20, and enjoy free shipping on top orders.',
-      badge: 'MEMBERS PRIVILEGE',
+      badge: '🏷️ MEMBERS PRIVILEGE',
     ),
     _OnboardingPageData(
       icon: Icons.local_shipping_outlined,
       title: 'Real-Time Order Tracking',
       subtitle: 'Track your packages with live status milestones from fulfillment to your doorstep.',
-      badge: 'EXPRESS DELIVERY',
+      badge: '🚚 EXPRESS DELIVERY',
     ),
   ];
 
