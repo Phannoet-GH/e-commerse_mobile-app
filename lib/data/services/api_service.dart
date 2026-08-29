@@ -219,4 +219,67 @@ class ApiService {
       return false;
     }
   }
+
+  /// POST /api/auth/forgot-password
+  Future<Map<String, dynamic>?> requestPasswordReset(String email) async {
+    try {
+      final response = await _client
+          .post(
+            Uri.parse('$baseUrl/auth/forgot-password'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'email': email}),
+          )
+          .timeout(const Duration(seconds: 3));
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map && decoded['data'] is Map) {
+          return decoded['data'] as Map<String, dynamic>;
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// POST /api/auth/verify-otp
+  Future<bool> verifyOtp({required String email, required String otp}) async {
+    try {
+      final response = await _client
+          .post(
+            Uri.parse('$baseUrl/auth/verify-otp'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'email': email, 'otp': otp}),
+          )
+          .timeout(const Duration(seconds: 3));
+
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// POST /api/auth/reset-password
+  Future<bool> resetPassword({
+    required String email,
+    required String newPassword,
+    String? otp,
+  }) async {
+    try {
+      final response = await _client
+          .post(
+            Uri.parse('$baseUrl/auth/reset-password'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'email': email,
+              'new_password': newPassword,
+              'otp': ?otp,
+            }),
+          )
+          .timeout(const Duration(seconds: 3));
+
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
 }

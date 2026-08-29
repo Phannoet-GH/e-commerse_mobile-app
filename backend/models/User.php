@@ -163,6 +163,16 @@ class User {
         // Attempt real SMTP / PHP mail dispatch
         @mail($email, $subject, $message, $headers);
 
+        // Also log to backend/data/mail_log.txt for local inspection & delivery verification
+        try {
+            $logDir = dirname(__DIR__) . '/data';
+            if (!is_dir($logDir)) {
+                @mkdir($logDir, 0777, true);
+            }
+            $logEntry = "[" . date('Y-m-d H:i:s') . "] TO: {$email} | OTP: {$otp} | SUBJECT: {$subject}\n";
+            @file_put_contents($logDir . '/mail_log.txt', $logEntry, FILE_APPEND);
+        } catch (\Throwable $e) {}
+
         return [
             'success' => true,
             'email' => $email,

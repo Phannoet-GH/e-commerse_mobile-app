@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/widgets/custom_text_field.dart';
+import '../../data/services/api_service.dart';
 
 enum _ResetStep {
   emailInput,
@@ -135,7 +136,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     _startOtpTimer();
     widget.onResetRequested?.call(email);
 
-    // Show real dispatch confirmation
+    // Call backend API to persist to database & dispatch email
+    ApiService().requestPasswordReset(email).then((res) {
+      if (res != null && res['otp'] != null && mounted) {
+        setState(() {
+          _generatedOtp = res['otp'].toString();
+        });
+      }
+    });
+
+    // Show real dispatch confirmation with sent OTP code
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -145,14 +155,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Verification code sent to $email. Valid for 10 minutes.',
-                style: const TextStyle(fontWeight: FontWeight.w600),
+                'Verification code sent: $_generatedOtp (Valid for 10 min)',
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
               ),
             ),
           ],
         ),
         backgroundColor: const Color(0xFF1E1E2F),
-        duration: const Duration(seconds: 4),
+        duration: const Duration(seconds: 8),
       ),
     );
   }
@@ -248,12 +258,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       return;
     }
 
+    final email = _emailController.text.trim();
+    ApiService().resetPassword(
+      email: email,
+      newPassword: newPassword,
+      otp: _otpControllers.map((c) => c.text.trim()).join(),
+    );
+
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     setState(() {
       _currentStep = _ResetStep.completed;
     });
 
-    widget.onPasswordResetSuccess?.call(_emailController.text.trim(), newPassword);
+    widget.onPasswordResetSuccess?.call(email, newPassword);
   }
 
   @override

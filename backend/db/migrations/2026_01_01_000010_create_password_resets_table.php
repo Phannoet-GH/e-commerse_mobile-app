@@ -33,3 +33,4 @@ return new class {
         $pdo->exec("DROP TABLE IF EXISTS password_resets;");
     }
 };
+
