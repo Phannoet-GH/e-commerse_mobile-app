@@ -272,7 +272,7 @@ class ApiService {
             body: jsonEncode({
               'email': email,
               'new_password': newPassword,
-              if (otp != null) 'otp': otp,
+              'otp': ?otp,
             }),
           )
           .timeout(const Duration(seconds: 3));

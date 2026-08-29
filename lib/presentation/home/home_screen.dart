@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 
 import '../../data/models/category_item.dart';
 import '../../data/models/product.dart';
+import '../../providers/home_provider.dart';
 import '../../providers/session_provider.dart';
+import '../account/address_manager_screen.dart';
 import '../notifications/notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -211,205 +213,307 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (_) {}
 
+    // Read active address for location bar
+    String locationText = '14 Market Street, New York';
+    try {
+      final homeProv = context.watch<HomeProvider>();
+      final defAddr = homeProv.defaultAddress;
+      if (defAddr != null) {
+        final formatted = '${defAddr.city}, ${defAddr.state} ${defAddr.zipCode}'.trim();
+        locationText = formatted.isNotEmpty ? formatted : defAddr.street;
+      }
+    } catch (_) {}
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9FB),
       body: SafeArea(
         bottom: false,
-        child: RefreshIndicator(
-          color: const Color(0xFFFF2D6F),
-          onRefresh: widget.onRefresh ?? () async {},
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16.0, 10.0, 16.0, 110.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. Mobile Head Bar
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Avatar & Greeting / Welcome Info
-                    Expanded(
-                      child: Row(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              if (!isSignedIn) {
-                                sessionProv?.openSignIn();
-                              }
-                            },
-                            child: Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: LinearGradient(
-                                  colors: isSignedIn
-                                      ? [const Color(0xFFFF2D6F), const Color(0xFF6C63FF)]
-                                      : [const Color(0xFF1E1E2F), const Color(0xFF33334D)],
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: isSignedIn
-                                        ? const Color(0x33FF2D6F)
-                                        : const Color(0x22000000),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: Center(
-                                child: isSignedIn && userName.isNotEmpty
-                                    ? Text(
-                                        userName[0].toUpperCase(),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      )
-                                    : const Icon(
-                                        Icons.person_outline_rounded,
-                                        color: Colors.white,
-                                        size: 22,
-                                      ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: GestureDetector(
+        child: Column(
+          children: [
+            // 1. PINNED NON-SCROLLABLE HEAD BAR & LOCATION SELECTOR
+            Container(
+              padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 10.0),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9F9FB),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  // Row A: Avatar & Greeting + Action Buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Avatar & Greeting / Welcome Info
+                      Expanded(
+                        child: Row(
+                          children: [
+                            GestureDetector(
                               onTap: () {
                                 if (!isSignedIn) {
                                   sessionProv?.openSignIn();
                                 }
                               },
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _getGreeting(),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.grey.shade600,
-                                      letterSpacing: 0.2,
-                                    ),
+                              child: Container(
+                                width: 42,
+                                height: 42,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: isSignedIn
+                                        ? [const Color(0xFFFF2D6F), const Color(0xFF6C63FF)]
+                                        : [const Color(0xFF1E1E2F), const Color(0xFF33334D)],
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    userName,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w900,
-                                      color: Color(0xFF1A1A1A),
-                                      letterSpacing: -0.4,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: isSignedIn
+                                          ? const Color(0x33FF2D6F)
+                                          : const Color(0x22000000),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
+                                  ],
+                                ),
+                                child: Center(
+                                  child: isSignedIn && userName.isNotEmpty
+                                      ? Text(
+                                          userName[0].toUpperCase(),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        )
+                                      : const Icon(
+                                          Icons.person_outline_rounded,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                ),
                               ),
                             ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  if (!isSignedIn) {
+                                    sessionProv?.openSignIn();
+                                  }
+                                },
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _getGreeting(),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey.shade600,
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 1),
+                                    Text(
+                                      userName,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w900,
+                                        color: Color(0xFF1A1A1A),
+                                        letterSpacing: -0.3,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Head Bar Action Buttons
+                      Row(
+                        children: [
+                          _buildTopIconButton(
+                            icon: Icons.search_rounded,
+                            onTap: () => widget.onNavigateToExplore?.call(),
+                            tooltip: 'Search',
+                          ),
+                          const SizedBox(width: 8),
+                          Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              _buildTopIconButton(
+                                icon: Icons.notifications_none_rounded,
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const NotificationsScreen(),
+                                    ),
+                                  );
+                                },
+                                tooltip: 'Notifications',
+                              ),
+                              if (widget.notificationCount > 0)
+                                Positioned(
+                                  right: -2,
+                                  top: -2,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFF2D6F),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white, width: 1.5),
+                                    ),
+                                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                                    child: Text(
+                                      '${widget.notificationCount}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 8,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(width: 8),
+                          Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              _buildTopIconButton(
+                                icon: Icons.shopping_bag_outlined,
+                                onTap: widget.onCartTap,
+                                tooltip: 'Cart',
+                              ),
+                              if (widget.cartCount > 0)
+                                Positioned(
+                                  right: -2,
+                                  top: -2,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFF2D6F),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white, width: 1.5),
+                                    ),
+                                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                                    child: Text(
+                                      '${widget.cartCount}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 8,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Row B: Delivery Location Pill Bar
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const AddressManagerScreen(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade200),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFFFF0F5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.location_on_rounded,
+                              color: Color(0xFFFF2D6F),
+                              size: 14,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Deliver to: ',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              locationText,
+                              style: const TextStyle(
+                                color: Color(0xFF1A1A1A),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            size: 16,
+                            color: Colors.grey.shade600,
                           ),
                         ],
                       ),
                     ),
+                  ),
+                ],
+              ),
+            ),
 
-                    // Head Bar Action Buttons
-                    Row(
-                      children: [
-                        _buildTopIconButton(
-                          icon: Icons.search_rounded,
-                          onTap: () => widget.onNavigateToExplore?.call(),
-                          tooltip: 'Search',
-                        ),
-                        const SizedBox(width: 8),
-                        Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            _buildTopIconButton(
-                              icon: Icons.notifications_none_rounded,
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => const NotificationsScreen(),
-                                  ),
-                                );
-                              },
-                              tooltip: 'Notifications',
-                            ),
-                            if (widget.notificationCount > 0)
-                              Positioned(
-                                right: -2,
-                                top: -2,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFF2D6F),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 1.5),
-                                  ),
-                                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                                  child: Text(
-                                    '${widget.notificationCount}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(width: 8),
-                        Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            _buildTopIconButton(
-                              icon: Icons.shopping_bag_outlined,
-                              onTap: widget.onCartTap,
-                              tooltip: 'Cart',
-                            ),
-                            if (widget.cartCount > 0)
-                              Positioned(
-                                right: -2,
-                                top: -2,
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFF2D6F),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 1.5),
-                                  ),
-                                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                                  child: Text(
-                                    '${widget.cartCount}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // 2. Hero Banner Slider (5 Luxury Product Slides with Auto-Play & Indicators)
-                SizedBox(
-                  width: double.infinity,
-                  height: 200,
-                  child: Stack(
+            // 2. SCROLLABLE BODY (Banner, Categories, Products)
+            Expanded(
+              child: RefreshIndicator(
+                color: const Color(0xFFFF2D6F),
+                onRefresh: widget.onRefresh ?? () async {},
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(16.0, 10.0, 16.0, 110.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // 2. Hero Banner Slider (5 Luxury Product Slides with Auto-Play & Indicators)
+                      SizedBox(
+                        width: double.infinity,
+                        height: 200,
+                        child: Stack(
+                          children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(26),
                         child: PageView.builder(
@@ -1155,7 +1259,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-    );
+    ],
+  ),
+),
+);
   }
 
   Widget _buildTopIconButton({
