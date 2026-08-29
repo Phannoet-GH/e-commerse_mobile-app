@@ -122,7 +122,8 @@ class SessionProvider extends ChangeNotifier {
     // 1. Try Backend API Authentication first
     final apiUser = await _apiService.login(email: cleanEmail, password: cleanPassword);
     if (apiUser != null) {
-      final name = (apiUser['name'] as String?) ?? cleanEmail.split('@').first;
+      final name = (apiUser['name'] as String?) ??
+          (cleanEmail.contains('@') && cleanEmail.split('@').isNotEmpty ? cleanEmail.split('@').first : 'Member');
       final phone = apiUser['phone'] as String?;
       await _storage.saveRegisteredUser(
         name: name,
@@ -138,7 +139,8 @@ class SessionProvider extends ChangeNotifier {
     final localUser = _storage.findUserByEmail(cleanEmail);
     if (localUser != null) {
       if (localUser['password'] == cleanPassword) {
-        final name = (localUser['name'] as String?) ?? cleanEmail.split('@').first;
+        final name = (localUser['name'] as String?) ??
+            (cleanEmail.contains('@') && cleanEmail.split('@').isNotEmpty ? cleanEmail.split('@').first : 'Member');
         await completeSignIn(email: cleanEmail, name: name);
         return null;
       } else {
@@ -172,7 +174,11 @@ class SessionProvider extends ChangeNotifier {
   }) async {
     final cleanEmail = email.trim().toLowerCase();
     final cleanPassword = password.trim();
-    final cleanName = name.trim().isNotEmpty ? name.trim() : cleanEmail.split('@').first;
+    final cleanName = name.trim().isNotEmpty
+        ? name.trim()
+        : (cleanEmail.contains('@') && cleanEmail.split('@').isNotEmpty
+            ? cleanEmail.split('@').first
+            : 'Member');
 
     if (cleanEmail.isEmpty || cleanPassword.isEmpty) {
       return 'Email and password cannot be left blank.';

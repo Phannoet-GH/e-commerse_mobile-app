@@ -79,7 +79,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    final resolvedName = name.isNotEmpty ? name : email.split('@').first;
+    final resolvedName = name.isNotEmpty
+        ? name
+        : (email.contains('@') && email.split('@').isNotEmpty
+            ? email.split('@').first
+            : 'Shopper');
 
     final error = await context.read<SessionProvider>().register(
           name: resolvedName,

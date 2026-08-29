@@ -52,7 +52,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _promoController.text = _promoCode!;
     }
 
-    _addresses = List<UserAddress>.from(widget.savedAddresses ?? _defaultAddresses());
+    final initialList = (widget.savedAddresses != null && widget.savedAddresses!.isNotEmpty)
+        ? widget.savedAddresses!
+        : _defaultAddresses();
+    _addresses = List<UserAddress>.from(initialList);
+    if (_addresses.isEmpty) {
+      _addresses = List<UserAddress>.from(_defaultAddresses());
+    }
     final defaultAddr = _addresses.firstWhere(
       (a) => a.isDefault,
       orElse: () => _addresses.first,
