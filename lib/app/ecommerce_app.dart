@@ -19,6 +19,8 @@ class ECommerceApp extends StatefulWidget {
 }
 
 class _ECommerceAppState extends State<ECommerceApp> {
+  bool _splashFinished = false;
+
   @override
   void initState() {
     super.initState();
@@ -43,9 +45,16 @@ class _ECommerceAppState extends State<ECommerceApp> {
   }
 
   Widget _home(SessionProvider session, HomeProvider homeProvider) {
-    if (!session.isReady) {
+    if (!session.isReady || !_splashFinished) {
       return SplashScreen(
-        onInitialized: () {},
+        duration: const Duration(milliseconds: 2000),
+        onInitialized: () {
+          if (mounted) {
+            setState(() {
+              _splashFinished = true;
+            });
+          }
+        },
       );
     }
 

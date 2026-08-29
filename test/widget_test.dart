@@ -76,6 +76,31 @@ void main() {
     expect(cartItem.size, 'M');
   });
 
+  testWidgets('first screen displayed upon app launch is SplashScreen with brand emblem and version badge',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: provider,
+        child: const ECommerceApp(),
+      ),
+    );
+    await tester.pump();
+
+    // Verify SplashScreen is displayed immediately
+    expect(find.text('LuxeCart'), findsOneWidget);
+    expect(find.text('CURATED LUXURY & MODERN ESSENTIALS'), findsOneWidget);
+    expect(find.text('v2.4.0 • SE Final 2026'), findsOneWidget);
+
+    // Advance past splash duration
+    await tester.pump(const Duration(milliseconds: 2100));
+    await tester.pumpAndSettle();
+
+    // Now Onboarding is displayed
+    expect(find.text('Welcome to LuxeCart'), findsOneWidget);
+  });
+
   testWidgets('first-time unsigned user sees onboarding',
       (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
@@ -86,6 +111,7 @@ void main() {
         child: const ECommerceApp(),
       ),
     );
+    await tester.pump(const Duration(milliseconds: 2100));
     await tester.pumpAndSettle();
 
     expect(find.text('Welcome to LuxeCart'), findsOneWidget);
@@ -109,11 +135,12 @@ void main() {
         child: const ECommerceApp(),
       ),
     );
+    await tester.pump(const Duration(milliseconds: 2100));
     await tester.pumpAndSettle();
 
     expect(find.text('Categories'), findsOneWidget);
     expect(find.text('Home'), findsWidgets);
-    expect(find.text('Welcome to LuxeCart ✨'), findsOneWidget);
+    expect(find.text('Welcome to LuxeCart'), findsOneWidget);
     expect(find.text('Sign In for VIP Deals & Perks'), findsOneWidget);
     expect(find.textContaining('Emma'), findsNothing);
   });

@@ -206,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Text(
                                   isSignedIn
                                       ? '${_getGreeting()}, $userName'
-                                      : 'Welcome to LuxeCart ✨',
+                                      : 'Welcome to LuxeCart',
                                   style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w800,
