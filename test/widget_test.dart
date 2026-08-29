@@ -11,6 +11,7 @@ import 'package:se_shop_e_commerce_app/data/services/api_service.dart';
 import 'package:se_shop_e_commerce_app/data/services/local_storage_service.dart';
 import 'package:se_shop_e_commerce_app/presentation/account/forgot_password_screen.dart';
 import 'package:se_shop_e_commerce_app/presentation/account/login_screen.dart';
+import 'package:se_shop_e_commerce_app/presentation/account/register_screen.dart';
 import 'package:se_shop_e_commerce_app/presentation/cart/checkout_screen.dart';
 import 'package:se_shop_e_commerce_app/presentation/explore/explore_screen.dart';
 import 'package:se_shop_e_commerce_app/presentation/home/home_screen.dart';
@@ -725,5 +726,51 @@ void main() {
 
     expect(loginSuccess, isTrue);
     expect(sessionProvider.isSignedIn, isTrue);
+  });
+
+  testWidgets('RegisterScreen validates email, 8-character password length and empty fields',
+      (WidgetTester tester) async {
+    bool registered = false;
+    final session = SessionProvider();
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: session,
+        child: MaterialApp(
+          home: RegisterScreen(
+            onRegisterSuccess: () {
+              registered = true;
+            },
+            onBackToSignIn: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Create Account'), findsWidgets);
+
+    final createBtn = find.widgetWithText(ElevatedButton, 'Create Account');
+    await tester.ensureVisible(createBtn);
+    await tester.tap(createBtn);
+    await tester.pumpAndSettle();
+    expect(registered, isFalse);
+
+    // 2. Submit with short password (< 8 chars) -> should fail
+    final textFields = find.byType(TextField);
+    await tester.enterText(textFields.at(0), 'Test User');
+    await tester.enterText(textFields.at(1), 'valid.user@domain.com'); // email
+    await tester.enterText(textFields.at(2), 'short'); // password < 8
+    await tester.ensureVisible(createBtn);
+    await tester.tap(createBtn);
+    await tester.pumpAndSettle();
+    expect(registered, isFalse);
+
+    // 3. Submit with valid email and password >= 8 characters -> should succeed
+    await tester.enterText(textFields.at(2), 'password123'); // 11 chars
+    await tester.ensureVisible(createBtn);
+    await tester.tap(createBtn);
+    await tester.pumpAndSettle();
+    expect(registered, isTrue);
   });
 }

@@ -36,17 +36,23 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleSignIn() {
     final email = _emailController.text.trim();
-    if (email.isNotEmpty) {
-      context.read<SessionProvider>().completeSignIn(
-            email: email,
-            name: email.split('@').first,
-          );
-    } else {
-      context.read<SessionProvider>().completeSignIn(
-            email: 'emma.wills@email.com',
-            name: 'Emma Wills',
-          );
+    final password = _passwordController.text.trim();
+
+    // 1. Empty Field Check
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter both your email address and password.'),
+          backgroundColor: Color(0xFF1E1E2F),
+        ),
+      );
+      return;
     }
+
+    context.read<SessionProvider>().completeSignIn(
+          email: email,
+          name: email.split('@').first,
+        );
     widget.onLoginSuccess();
   }
 

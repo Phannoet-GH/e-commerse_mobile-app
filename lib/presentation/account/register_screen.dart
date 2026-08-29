@@ -23,6 +23,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _phoneController = TextEditingController();
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -39,20 +40,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final password = _passwordController.text.trim();
     final phone = _phoneController.text.trim();
 
-    if (name.isNotEmpty && email.isNotEmpty) {
-      context.read<SessionProvider>().register(
-        name: name,
-        email: email,
-        password: password,
-        phone: phone,
+    // 1. Empty Field Check
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Email and Password cannot be left blank.'),
+          backgroundColor: Color(0xFF1E1E2F),
+        ),
       );
-    } else {
-      context.read<SessionProvider>().register(
-        name: 'Emma Wills',
-        email: 'emma.wills@email.com',
-        password: 'password123',
-      );
+      return;
     }
+
+    // 2. Email Validation (@ symbol & format)
+    final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!email.contains('@') || !emailRegExp.hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid email address (e.g. user@domain.com).'),
+          backgroundColor: Color(0xFF1E1E2F),
+        ),
+      );
+      return;
+    }
+
+    // 3. Password Validation (At least 8 characters)
+    if (password.length < 8) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Password must be at least 8 characters long.'),
+          backgroundColor: Color(0xFF1E1E2F),
+        ),
+      );
+      return;
+    }
+
+    final resolvedName = name.isNotEmpty ? name : email.split('@').first;
+
+    context.read<SessionProvider>().register(
+          name: resolvedName,
+          email: email,
+          password: password,
+          phone: phone.isNotEmpty ? phone : null,
+        );
+
     widget.onRegisterSuccess();
   }
 
@@ -106,10 +136,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 16),
               CustomTextField(
-                label: 'Email Address',
-                hint: 'emma.wills@email.com',
+                label: 'Email Address *',
+                hint: 'user@domain.com',
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 16),
+              CustomTextField(
+                label: 'Password (min. 8 characters) *',
+                hint: '••••••••',
+                controller: _passwordController,
+                obscureText: _obscurePassword,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    size: 20,
+                    color: Colors.grey.shade600,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                ),
               ),
               const SizedBox(height: 16),
               CustomTextField(
@@ -117,13 +166,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 hint: '+1 (555) 234-5678',
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 16),
-              CustomTextField(
-                label: 'Password',
-                hint: '••••••••',
-                controller: _passwordController,
-                obscureText: true,
               ),
               const SizedBox(height: 24),
               SizedBox(
