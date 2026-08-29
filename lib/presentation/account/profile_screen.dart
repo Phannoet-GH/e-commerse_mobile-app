@@ -329,27 +329,29 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16),
+
+                  // 📌 Fixed "My Account" Header Title
+                  const Text(
+                    'My Account',
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A1A1A),
+                      letterSpacing: -0.2,
+                    ),
+                  ),
                 ],
               ),
             ),
 
-            // ↕️ 2. SCROLLABLE CONTENT (STARTING ONLY FROM "MY ACCOUNT")
+            // ↕️ 2. SCROLLABLE MENU ITEMS
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(18, 14, 18, 110),
+                padding: const EdgeInsets.fromLTRB(18, 8, 18, 110),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'My Account',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1A1A1A),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
                     _buildMenuItem(
                       icon: Icons.receipt_long_outlined,
                       title: 'My Orders',
