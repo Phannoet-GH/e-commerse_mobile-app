@@ -301,19 +301,19 @@ class _DetailScreenState extends State<DetailScreen> {
                                 },
                               ),
                             ),
-                            // Product Badge (attached to image - scrolls with product)
+                            // Product Badge (attached to image at exact original position - scrolls with product)
                             if (widget.product.badge != null)
                               Positioned(
-                                top: 64,
-                                left: 16,
+                                top: 14,
+                                right: 112,
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFFF2D6F),
-                                    borderRadius: BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(12),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xFFFF2D6F).withValues(alpha: 0.35),
+                                        color: const Color(0xFFFF2D6F).withValues(alpha: 0.3),
                                         blurRadius: 8,
                                         offset: const Offset(0, 2),
                                       ),
@@ -323,9 +323,8 @@ class _DetailScreenState extends State<DetailScreen> {
                                     widget.product.badge!,
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.5,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
@@ -383,6 +382,24 @@ class _DetailScreenState extends State<DetailScreen> {
                                           letterSpacing: 1.0,
                                         ),
                                       ),
+                                      if (widget.product.badge != null) ...[
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFFF2D6F),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            widget.product.badge!,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ],
                                   ),
                                   Container(
