@@ -266,118 +266,74 @@ class _DetailScreenState extends State<DetailScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Scrollable Content
+            // Main Content Area with Fixed Floating Top Nav Header
             Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 1. Image Carousel Header
-                    Stack(
+              child: Stack(
+                children: [
+                  // 1. Scrollable Product Details & Images
+                  SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          height: 340,
-                          width: double.infinity,
-                          color: Colors.white,
-                          child: PageView.builder(
-                            controller: _pageController,
-                            itemCount: images.length,
-                            onPageChanged: (idx) => setState(() => _activeImageIndex = idx),
-                            itemBuilder: (context, index) {
-                              return Image.network(
-                                images[index],
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Container(
-                                  color: Colors.grey.shade100,
-                                  child: const Center(
-                                    child: Icon(Icons.image_not_supported_outlined, size: 48, color: Colors.grey),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        // Top Nav Bar
-                        Positioned(
-                          top: 14,
-                          left: 16,
-                          right: 16,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _buildCircleButton(
-                                icon: Icons.arrow_back_ios_new_rounded,
-                                onTap: widget.onBack,
-                              ),
-                              Row(
-                                children: [
-                                  if (widget.product.badge != null)
-                                    Container(
-                                      margin: const EdgeInsets.only(right: 8),
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFFF2D6F),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        widget.product.badge!,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                        // Image Carousel Header
+                        Stack(
+                          children: [
+                            Container(
+                              height: 340,
+                              width: double.infinity,
+                              color: Colors.white,
+                              child: PageView.builder(
+                                controller: _pageController,
+                                itemCount: images.length,
+                                onPageChanged: (idx) => setState(() => _activeImageIndex = idx),
+                                itemBuilder: (context, index) {
+                                  return Image.network(
+                                    images[index],
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        Container(
+                                      color: Colors.grey.shade100,
+                                      child: const Center(
+                                        child: Icon(Icons.image_not_supported_outlined, size: 48, color: Colors.grey),
                                       ),
                                     ),
-                                  _buildCircleButton(
-                                    icon: Icons.bookmark_add_outlined,
-                                    iconColor: const Color(0xFF6C63FF),
-                                    onTap: () => _showWishlistPicker(context),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  _buildCircleButton(
-                                    icon: widget.isFavorite ? Icons.favorite : Icons.favorite_border,
-                                    iconColor: widget.isFavorite ? const Color(0xFFFF2D6F) : const Color(0xFF1A1A1A),
-                                    onTap: widget.onFavoriteToggle ?? () {},
-                                  ),
-                                ],
+                                  );
+                                },
                               ),
-                            ],
-                          ),
-                        ),
-                        // Carousel Dots
-                        if (images.length > 1)
-                          Positioned(
-                            bottom: 14,
-                            left: 0,
-                            right: 0,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: List.generate(
-                                images.length,
-                                (dotIndex) => Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                                  width: _activeImageIndex == dotIndex ? 20 : 6,
-                                  height: 6,
-                                  decoration: BoxDecoration(
-                                    color: _activeImageIndex == dotIndex
-                                        ? const Color(0xFFFF2D6F)
-                                        : Colors.grey.shade300,
-                                    borderRadius: BorderRadius.circular(3),
+                            ),
+                            // Carousel Dots
+                            if (images.length > 1)
+                              Positioned(
+                                bottom: 14,
+                                left: 0,
+                                right: 0,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: List.generate(
+                                    images.length,
+                                    (dotIndex) => Container(
+                                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                                      width: _activeImageIndex == dotIndex ? 20 : 6,
+                                      height: 6,
+                                      decoration: BoxDecoration(
+                                        color: _activeImageIndex == dotIndex
+                                            ? const Color(0xFFFF2D6F)
+                                            : Colors.grey.shade300,
+                                        borderRadius: BorderRadius.circular(3),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                      ],
-                    ),
+                          ],
+                        ),
 
-                    // 2. Product Info Card
-                    Container(
-                      transform: Matrix4.translationValues(0, -16, 0),
-                      padding: const EdgeInsets.all(20),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
+                        // 2. Product Info Card
+                        Container(
+                          transform: Matrix4.translationValues(0, -16, 0),
+                          padding: const EdgeInsets.all(20),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
                         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
                       ),
                       child: Column(
@@ -785,7 +741,64 @@ class _DetailScreenState extends State<DetailScreen> {
                   ],
                 ),
               ),
-            ),
+
+              // 📌 2. PINNED / FIXED TOP HEADER ACTION ICONS
+              Positioned(
+                top: 12,
+                left: 16,
+                right: 16,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildCircleButton(
+                      icon: Icons.arrow_back_ios_new_rounded,
+                      onTap: widget.onBack,
+                    ),
+                    Row(
+                      children: [
+                        if (widget.product.badge != null)
+                          Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF2D6F),
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFFF2D6F).withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              widget.product.badge!,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        _buildCircleButton(
+                          icon: Icons.bookmark_add_outlined,
+                          iconColor: const Color(0xFF6C63FF),
+                          onTap: () => _showWishlistPicker(context),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildCircleButton(
+                          icon: widget.isFavorite ? Icons.favorite : Icons.favorite_border,
+                          iconColor: widget.isFavorite ? const Color(0xFFFF2D6F) : const Color(0xFF1A1A1A),
+                          onTap: widget.onFavoriteToggle ?? () {},
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
 
             // 3. Sticky Bottom Action Bar
             Container(
