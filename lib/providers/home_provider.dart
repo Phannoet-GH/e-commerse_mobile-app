@@ -19,6 +19,8 @@ class HomeProvider extends ChangeNotifier {
   final LocalStorageService _storage;
   final ProductService _productService;
 
+  String? _currentUserId;
+
   int _selectedIndex = 0;
   Product? _selectedProduct;
   List<Product> _products = [];
@@ -37,6 +39,7 @@ class HomeProvider extends ChangeNotifier {
   double _promoDiscountPercent = 0.0;
   double _promoDiscountFlat = 0.0;
 
+  String? get currentUserId => _currentUserId;
   int get selectedIndex => _selectedIndex;
   Product? get selectedProduct => _selectedProduct;
   List<Product> get products => _products;
@@ -64,13 +67,23 @@ class HomeProvider extends ChangeNotifier {
 
   Future<void> _initStorage() async {
     await _storage.init();
-    _cart = List<CartItem>.from(_storage.getCartItems());
-    _favorites = Set<int>.from(_storage.getFavorites());
-    _wishlists = List<WishlistBoard>.from(_storage.getWishlists());
-    _orders = List<Order>.from(_storage.getOrders());
-    _addresses = List<UserAddress>.from(_storage.getAddresses());
-    _notifications = List<NotificationItem>.from(_storage.getNotifications());
-    _searchHistory = List<String>.from(_storage.getSearchHistory());
+    _currentUserId = _storage.isSignedIn ? _storage.userEmail : null;
+    switchUserScope(_currentUserId);
+  }
+
+  /// Switch the active user session boundary to isolate private user data from guest/other users.
+  void switchUserScope(String? userId) {
+    _currentUserId = userId;
+    _cart = List<CartItem>.from(_storage.getCartItems(userId: userId));
+    _favorites = Set<int>.from(_storage.getFavorites(userId: userId));
+    _wishlists = List<WishlistBoard>.from(_storage.getWishlists(userId: userId));
+    _orders = List<Order>.from(_storage.getOrders(userId: userId));
+    _addresses = List<UserAddress>.from(_storage.getAddresses(userId: userId));
+    _notifications = List<NotificationItem>.from(_storage.getNotifications(userId: userId));
+    _searchHistory = List<String>.from(_storage.getSearchHistory(userId: userId));
+    _appliedPromoCode = null;
+    _promoDiscountPercent = 0.0;
+    _promoDiscountFlat = 0.0;
     notifyListeners();
   }
 
@@ -99,7 +112,7 @@ class HomeProvider extends ChangeNotifier {
     } else {
       _favorites.add(productId);
     }
-    _storage.saveFavorites(_favorites);
+    _storage.saveFavorites(_favorites, userId: _currentUserId);
     notifyListeners();
   }
 
@@ -120,7 +133,7 @@ class HomeProvider extends ChangeNotifier {
       isDefault: false,
     );
     _wishlists.add(board);
-    _storage.saveWishlists(_wishlists);
+    _storage.saveWishlists(_wishlists, userId: _currentUserId);
     notifyListeners();
     return board;
   }
@@ -132,7 +145,7 @@ class HomeProvider extends ChangeNotifier {
       if (!board.productIds.contains(productId)) {
         final updatedIds = List<int>.from(board.productIds)..add(productId);
         _wishlists[index] = board.copyWith(productIds: updatedIds);
-        _storage.saveWishlists(_wishlists);
+        _storage.saveWishlists(_wishlists, userId: _currentUserId);
         notifyListeners();
       }
     }
@@ -144,14 +157,14 @@ class HomeProvider extends ChangeNotifier {
       final board = _wishlists[index];
       final updatedIds = List<int>.from(board.productIds)..remove(productId);
       _wishlists[index] = board.copyWith(productIds: updatedIds);
-      _storage.saveWishlists(_wishlists);
+      _storage.saveWishlists(_wishlists, userId: _currentUserId);
       notifyListeners();
     }
   }
 
   void deleteWishlist(String wishlistId) {
     _wishlists.removeWhere((w) => w.id == wishlistId && !w.isDefault);
-    _storage.saveWishlists(_wishlists);
+    _storage.saveWishlists(_wishlists, userId: _currentUserId);
     notifyListeners();
   }
 
@@ -218,7 +231,7 @@ class HomeProvider extends ChangeNotifier {
         ),
       );
     }
-    _storage.saveCartItems(_cart);
+    _storage.saveCartItems(_cart, userId: _currentUserId);
     notifyListeners();
   }
 
@@ -232,7 +245,7 @@ class HomeProvider extends ChangeNotifier {
     if (index >= 0 && index < _cart.length) {
       final item = _cart[index];
       _cart[index] = item.copyWith(qty: item.qty + 1);
-      _storage.saveCartItems(_cart);
+      _storage.saveCartItems(_cart, userId: _currentUserId);
       notifyListeners();
     }
   }
@@ -245,7 +258,7 @@ class HomeProvider extends ChangeNotifier {
       } else {
         _cart.removeAt(index);
       }
-      _storage.saveCartItems(_cart);
+      _storage.saveCartItems(_cart, userId: _currentUserId);
       notifyListeners();
     }
   }
@@ -253,7 +266,7 @@ class HomeProvider extends ChangeNotifier {
   void removeFromCart(int index) {
     if (index >= 0 && index < _cart.length) {
       _cart.removeAt(index);
-      _storage.saveCartItems(_cart);
+      _storage.saveCartItems(_cart, userId: _currentUserId);
       notifyListeners();
     }
   }
@@ -263,7 +276,7 @@ class HomeProvider extends ChangeNotifier {
     _appliedPromoCode = null;
     _promoDiscountPercent = 0.0;
     _promoDiscountFlat = 0.0;
-    _storage.saveCartItems(_cart);
+    _storage.saveCartItems(_cart, userId: _currentUserId);
     notifyListeners();
   }
 
@@ -329,7 +342,7 @@ class HomeProvider extends ChangeNotifier {
 
     _orders = List<Order>.from(_orders);
     _orders.insert(0, order);
-    _storage.saveOrders(_orders);
+    _storage.saveOrders(_orders, userId: _currentUserId);
 
     // Create confirmation notification
     final notif = NotificationItem(
@@ -341,7 +354,7 @@ class HomeProvider extends ChangeNotifier {
     );
     _notifications = List<NotificationItem>.from(_notifications);
     _notifications.insert(0, notif);
-    _storage.saveNotifications(_notifications);
+    _storage.saveNotifications(_notifications, userId: _currentUserId);
 
     clearCart();
     _selectedIndex = 0;
@@ -353,7 +366,7 @@ class HomeProvider extends ChangeNotifier {
     for (final item in order.items) {
       _cart.add(item.copyWith());
     }
-    _storage.saveCartItems(_cart);
+    _storage.saveCartItems(_cart, userId: _currentUserId);
     _selectedIndex = 2; // Navigate to cart
     notifyListeners();
   }
@@ -364,7 +377,7 @@ class HomeProvider extends ChangeNotifier {
       _addresses = _addresses.map((a) => a.copyWith(isDefault: false)).toList();
     }
     _addresses.add(address);
-    _storage.saveAddresses(_addresses);
+    _storage.saveAddresses(_addresses, userId: _currentUserId);
     notifyListeners();
   }
 
@@ -375,7 +388,7 @@ class HomeProvider extends ChangeNotifier {
         _addresses = _addresses.map((a) => a.copyWith(isDefault: false)).toList();
       }
       _addresses[index] = updated;
-      _storage.saveAddresses(_addresses);
+      _storage.saveAddresses(_addresses, userId: _currentUserId);
       notifyListeners();
     }
   }
@@ -385,13 +398,13 @@ class HomeProvider extends ChangeNotifier {
     if (_addresses.isNotEmpty && !_addresses.any((a) => a.isDefault)) {
       _addresses[0] = _addresses[0].copyWith(isDefault: true);
     }
-    _storage.saveAddresses(_addresses);
+    _storage.saveAddresses(_addresses, userId: _currentUserId);
     notifyListeners();
   }
 
   void setDefaultAddress(String id) {
     _addresses = _addresses.map((a) => a.copyWith(isDefault: a.id == id)).toList();
-    _storage.saveAddresses(_addresses);
+    _storage.saveAddresses(_addresses, userId: _currentUserId);
     notifyListeners();
   }
 
@@ -404,19 +417,19 @@ class HomeProvider extends ChangeNotifier {
     if (_searchHistory.length > 10) {
       _searchHistory = _searchHistory.sublist(0, 10);
     }
-    _storage.saveSearchHistory(_searchHistory);
+    _storage.saveSearchHistory(_searchHistory, userId: _currentUserId);
     notifyListeners();
   }
 
   void removeSearchQuery(String query) {
     _searchHistory.remove(query);
-    _storage.saveSearchHistory(_searchHistory);
+    _storage.saveSearchHistory(_searchHistory, userId: _currentUserId);
     notifyListeners();
   }
 
   void clearSearchHistory() {
     _searchHistory.clear();
-    _storage.saveSearchHistory(_searchHistory);
+    _storage.saveSearchHistory(_searchHistory, userId: _currentUserId);
     notifyListeners();
   }
 
@@ -425,14 +438,14 @@ class HomeProvider extends ChangeNotifier {
     final index = _notifications.indexWhere((n) => n.id == id);
     if (index != -1) {
       _notifications[index] = _notifications[index].copyWith(isRead: true);
-      _storage.saveNotifications(_notifications);
+      _storage.saveNotifications(_notifications, userId: _currentUserId);
       notifyListeners();
     }
   }
 
   void clearAllNotifications() {
     _notifications.clear();
-    _storage.saveNotifications(_notifications);
+    _storage.saveNotifications(_notifications, userId: _currentUserId);
     notifyListeners();
   }
 

@@ -13,18 +13,26 @@ class LocalStorageService {
   static const userNameKey = 'userName';
   static const userEmailKey = 'userEmail';
   static const userPhoneKey = 'userPhone';
-  static const cartItemsKey = 'cartItems_v2';
-  static const favoritesKey = 'favorites_v2';
-  static const wishlistsKey = 'wishlists_v2';
-  static const ordersKey = 'orders_v2';
-  static const addressesKey = 'addresses_v2';
-  static const searchHistoryKey = 'searchHistory_v2';
-  static const notificationsKey = 'notifications_v2';
+
+  static const cartItemsBaseKey = 'cartItems_v3';
+  static const favoritesBaseKey = 'favorites_v3';
+  static const wishlistsBaseKey = 'wishlists_v3';
+  static const ordersBaseKey = 'orders_v3';
+  static const addressesBaseKey = 'addresses_v3';
+  static const searchHistoryBaseKey = 'searchHistory_v3';
+  static const notificationsBaseKey = 'notifications_v3';
 
   SharedPreferences? _prefs;
 
   Future<void> init() async {
     _prefs ??= await SharedPreferences.getInstance();
+  }
+
+  String _scopedKey(String baseKey, String? userId) {
+    final scope = (userId != null && userId.trim().isNotEmpty)
+        ? userId.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9_]'), '_')
+        : 'guest';
+    return '${baseKey}_$scope';
   }
 
   bool get hasOpenedBefore => _prefs?.getBool(hasOpenedBeforeKey) ?? false;
@@ -53,9 +61,10 @@ class LocalStorageService {
     }
   }
 
-  // --- Cart Persistence ---
-  List<CartItem> getCartItems() {
-    final raw = _prefs?.getString(cartItemsKey);
+  // --- Cart Persistence (Per-User Scoped) ---
+  List<CartItem> getCartItems({String? userId}) {
+    final key = _scopedKey(cartItemsBaseKey, userId);
+    final raw = _prefs?.getString(key);
     if (raw == null || raw.isEmpty) return [];
     try {
       final decoded = jsonDecode(raw) as List<dynamic>;
@@ -65,26 +74,30 @@ class LocalStorageService {
     }
   }
 
-  Future<void> saveCartItems(List<CartItem> items) async {
+  Future<void> saveCartItems(List<CartItem> items, {String? userId}) async {
+    final key = _scopedKey(cartItemsBaseKey, userId);
     final raw = jsonEncode(items.map((i) => i.toJson()).toList());
-    await _prefs?.setString(cartItemsKey, raw);
+    await _prefs?.setString(key, raw);
   }
 
-  // --- Favorites Persistence ---
-  Set<int> getFavorites() {
-    final list = _prefs?.getStringList(favoritesKey);
+  // --- Favorites Persistence (Per-User Scoped) ---
+  Set<int> getFavorites({String? userId}) {
+    final key = _scopedKey(favoritesBaseKey, userId);
+    final list = _prefs?.getStringList(key);
     if (list == null) return {};
     return list.map((e) => int.tryParse(e) ?? 0).where((id) => id > 0).toSet();
   }
 
-  Future<void> saveFavorites(Set<int> favorites) async {
+  Future<void> saveFavorites(Set<int> favorites, {String? userId}) async {
+    final key = _scopedKey(favoritesBaseKey, userId);
     final list = favorites.map((e) => e.toString()).toList();
-    await _prefs?.setStringList(favoritesKey, list);
+    await _prefs?.setStringList(key, list);
   }
 
-  // --- Wishlist Persistence ---
-  List<WishlistBoard> getWishlists() {
-    final raw = _prefs?.getString(wishlistsKey);
+  // --- Wishlist Persistence (Per-User Scoped) ---
+  List<WishlistBoard> getWishlists({String? userId}) {
+    final key = _scopedKey(wishlistsBaseKey, userId);
+    final raw = _prefs?.getString(key);
     if (raw == null || raw.isEmpty) return _defaultWishlists();
     try {
       final decoded = jsonDecode(raw) as List<dynamic>;
@@ -94,9 +107,10 @@ class LocalStorageService {
     }
   }
 
-  Future<void> saveWishlists(List<WishlistBoard> wishlists) async {
+  Future<void> saveWishlists(List<WishlistBoard> wishlists, {String? userId}) async {
+    final key = _scopedKey(wishlistsBaseKey, userId);
     final raw = jsonEncode(wishlists.map((w) => w.toJson()).toList());
-    await _prefs?.setString(wishlistsKey, raw);
+    await _prefs?.setString(key, raw);
   }
 
   List<WishlistBoard> _defaultWishlists() {
@@ -113,114 +127,106 @@ class LocalStorageService {
     ];
   }
 
-  // --- Orders Persistence ---
-  List<Order> getOrders() {
-    final raw = _prefs?.getString(ordersKey);
-    if (raw == null || raw.isEmpty) return _defaultSampleOrders();
+  // --- Orders Persistence (Per-User Scoped) ---
+  List<Order> getOrders({String? userId}) {
+    final key = _scopedKey(ordersBaseKey, userId);
+    final raw = _prefs?.getString(key);
+    if (raw == null || raw.isEmpty) return [];
     try {
       final decoded = jsonDecode(raw) as List<dynamic>;
       return decoded.map((e) => Order.fromJson(e as Map<String, dynamic>)).toList();
     } catch (_) {
-      return _defaultSampleOrders();
+      return [];
     }
   }
 
-  Future<void> saveOrders(List<Order> orders) async {
+  Future<void> saveOrders(List<Order> orders, {String? userId}) async {
+    final key = _scopedKey(ordersBaseKey, userId);
     final raw = jsonEncode(orders.map((o) => o.toJson()).toList());
-    await _prefs?.setString(ordersKey, raw);
+    await _prefs?.setString(key, raw);
   }
 
-  List<Order> _defaultSampleOrders() {
-    return [];
-  }
-
-  // --- Address Book Persistence ---
-  List<UserAddress> getAddresses() {
-    final raw = _prefs?.getString(addressesKey);
-    if (raw == null || raw.isEmpty) return _defaultAddresses();
+  // --- Address Book Persistence (Per-User Scoped) ---
+  List<UserAddress> getAddresses({String? userId}) {
+    final key = _scopedKey(addressesBaseKey, userId);
+    final raw = _prefs?.getString(key);
+    if (raw == null || raw.isEmpty) return _defaultAddresses(userId: userId);
     try {
       final decoded = jsonDecode(raw) as List<dynamic>;
       return decoded.map((e) => UserAddress.fromJson(e as Map<String, dynamic>)).toList();
     } catch (_) {
-      return _defaultAddresses();
+      return _defaultAddresses(userId: userId);
     }
   }
 
-  Future<void> saveAddresses(List<UserAddress> addresses) async {
+  Future<void> saveAddresses(List<UserAddress> addresses, {String? userId}) async {
+    final key = _scopedKey(addressesBaseKey, userId);
     final raw = jsonEncode(addresses.map((a) => a.toJson()).toList());
-    await _prefs?.setString(addressesKey, raw);
+    await _prefs?.setString(key, raw);
   }
 
-  List<UserAddress> _defaultAddresses() {
-    final name = isSignedIn && userName.isNotEmpty ? userName : 'Guest Shopper';
+  List<UserAddress> _defaultAddresses({String? userId}) {
+    // Only return default address if it's an authenticated user session
+    if (userId == null || userId.trim().isEmpty || userId == 'guest') {
+      return [];
+    }
     return [
-      UserAddress(
-        id: 'addr_1',
-        recipientName: name,
-        street: '14 Market Street, Apt 4B',
-        city: 'New York',
-        state: 'NY',
-        zipCode: '10001',
+      const UserAddress(
+        id: 'addr_default_1',
+        recipientName: 'Emma Wills',
+        phone: '+1 (555) 234-5678',
+        street: '742 Evergreen Terrace, Apt 4B',
+        city: 'Springfield',
+        state: 'OR',
+        zipCode: '97477',
         country: 'United States',
-        phone: isSignedIn && userPhone.isNotEmpty ? userPhone : '+1 (555) 234-5678',
         isDefault: true,
-      ),
-      UserAddress(
-        id: 'addr_2',
-        recipientName: '$name (Work)',
-        street: '450 Lexington Ave, Suite 1200',
-        city: 'New York',
-        state: 'NY',
-        zipCode: '10017',
-        country: 'United States',
-        phone: '+1 (555) 987-6543',
-        isDefault: false,
       ),
     ];
   }
 
-  // --- Search History Persistence ---
-  List<String> getSearchHistory() {
-    return _prefs?.getStringList(searchHistoryKey) ??
-        ['Hoodie', 'Sneakers', 'Watch', 'Headphones', 'Linen'];
+  // --- Search History (Per-User Scoped) ---
+  List<String> getSearchHistory({String? userId}) {
+    final key = _scopedKey(searchHistoryBaseKey, userId);
+    return _prefs?.getStringList(key) ?? [];
   }
 
-  Future<void> saveSearchHistory(List<String> queries) async {
-    await _prefs?.setStringList(searchHistoryKey, queries);
+  Future<void> saveSearchHistory(List<String> history, {String? userId}) async {
+    final key = _scopedKey(searchHistoryBaseKey, userId);
+    await _prefs?.setStringList(key, history);
   }
 
-  // --- Notifications Persistence ---
-  List<NotificationItem> getNotifications() {
-    final raw = _prefs?.getString(notificationsKey);
-    if (raw == null || raw.isEmpty) return _defaultNotifications();
+  // --- Notifications Persistence (Per-User Scoped) ---
+  List<NotificationItem> getNotifications({String? userId}) {
+    final key = _scopedKey(notificationsBaseKey, userId);
+    final raw = _prefs?.getString(key);
+    if (raw == null || raw.isEmpty) return _defaultNotifications(userId: userId);
     try {
       final decoded = jsonDecode(raw) as List<dynamic>;
       return decoded.map((e) => NotificationItem.fromJson(e as Map<String, dynamic>)).toList();
     } catch (_) {
-      return _defaultNotifications();
+      return _defaultNotifications(userId: userId);
     }
   }
 
-  Future<void> saveNotifications(List<NotificationItem> items) async {
-    final raw = jsonEncode(items.map((n) => n.toJson()).toList());
-    await _prefs?.setString(notificationsKey, raw);
+  Future<void> saveNotifications(List<NotificationItem> notifications, {String? userId}) async {
+    final key = _scopedKey(notificationsBaseKey, userId);
+    final raw = jsonEncode(notifications.map((n) => n.toJson()).toList());
+    await _prefs?.setString(key, raw);
   }
 
-  List<NotificationItem> _defaultNotifications() {
+  List<NotificationItem> _defaultNotifications({String? userId}) {
+    if (userId == null || userId.trim().isEmpty || userId == 'guest') {
+      return [];
+    }
     return [
-      const NotificationItem(
-        id: 'notif_1',
-        title: 'Flash Sale Alert! ⚡',
-        message: 'Get up to 40% off summer apparel & footwear today only with code LUXE20.',
-        time: '2 hours ago',
+      NotificationItem(
+        id: 'notif_welcome',
+        title: 'Welcome to LuxeCart VIP Club!',
+        message: 'Your account is active. Use promo code LUXE20 to get 20% off your first purchase.',
+        time: '1 hour ago',
         type: 'promo',
-      ),
-      const NotificationItem(
-        id: 'notif_2',
-        title: 'Welcome to LuxeCart',
-        message: 'Your account has been set up. Enjoy free shipping on all orders over \$100.',
-        time: '1 day ago',
-        type: 'account',
+        isRead: false,
       ),
     ];
   }

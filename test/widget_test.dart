@@ -773,4 +773,68 @@ void main() {
     await tester.pumpAndSettle();
     expect(registered, isTrue);
   });
+
+  testWidgets('User Data Isolation: signing out switches to clean guest state and isolates User A data',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final storage = LocalStorageService();
+    await storage.init();
+    final provider = HomeProvider(storage: storage);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    final product1 = Product(
+      id: 1,
+      name: 'Product 1',
+      brand: 'Brand A',
+      price: 50.0,
+      category: 'Apparel',
+      image: '',
+      rating: 4.5,
+      reviews: 10,
+      description: 'Desc',
+      sizes: const ['M'],
+    );
+    final product2 = Product(
+      id: 2,
+      name: 'Product 2',
+      brand: 'Brand B',
+      price: 80.0,
+      category: 'Tech',
+      image: '',
+      rating: 4.8,
+      reviews: 25,
+      description: 'Desc',
+      sizes: const ['One Size'],
+    );
+
+    // 1. User A logs in and performs actions
+    provider.switchUserScope('user_a@example.com');
+    provider.addToCart(product1);
+    provider.toggleFavorite(2);
+    provider.placeOrder();
+
+    expect(provider.favorites.contains(2), isTrue);
+    expect(provider.orders.length, 1);
+
+    // 2. User A signs out -> switches to Guest Scope
+    provider.switchUserScope(null);
+
+    // Verify Guest sees clean, empty state
+    expect(provider.cart, isEmpty);
+    expect(provider.favorites, isEmpty);
+    expect(provider.orders, isEmpty);
+
+    // 3. Guest adds Product 2 to cart
+    provider.addToCart(product2);
+    expect(provider.cart.length, 1);
+    expect(provider.cart.first.product.id, 2);
+
+    // 4. User A logs back in
+    provider.switchUserScope('user_a@example.com');
+
+    // Verify User A's private data is restored and isolated from Guest
+    expect(provider.favorites.contains(2), isTrue);
+    expect(provider.orders.length, 1);
+    expect(provider.cart, isEmpty); // because User A placed the order earlier and cleared their cart
+  });
 }

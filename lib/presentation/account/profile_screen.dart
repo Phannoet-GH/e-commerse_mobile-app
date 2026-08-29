@@ -98,6 +98,7 @@ class ProfileScreen extends StatelessWidget {
             onPressed: () {
               Navigator.of(ctx).pop();
               context.read<SessionProvider>().signOut();
+              context.read<HomeProvider>().switchUserScope(null);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Signed out successfully. You are now in Guest Mode.'),

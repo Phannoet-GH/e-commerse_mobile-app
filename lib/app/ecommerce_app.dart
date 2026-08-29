@@ -83,7 +83,10 @@ class _ECommerceAppState extends State<ECommerceApp> {
     // 3. Register Screen
     if (session.showAuth && session.showRegister) {
       return RegisterScreen(
-        onRegisterSuccess: () => context.read<SessionProvider>().completeSignIn(),
+        onRegisterSuccess: () {
+          final email = context.read<SessionProvider>().userEmail;
+          context.read<HomeProvider>().switchUserScope(email);
+        },
         onBackToSignIn: () => context.read<SessionProvider>().backToSignIn(),
       );
     }
@@ -91,10 +94,16 @@ class _ECommerceAppState extends State<ECommerceApp> {
     // 4. Login Screen
     if (session.showAuth) {
       return LoginScreen(
-        onLoginSuccess: () => context.read<SessionProvider>().completeSignIn(),
+        onLoginSuccess: () {
+          final email = context.read<SessionProvider>().userEmail;
+          context.read<HomeProvider>().switchUserScope(email);
+        },
         onNavigateToRegister: () => context.read<SessionProvider>().openRegister(),
         onForgotPassword: () => context.read<SessionProvider>().openForgotPassword(),
-        onBack: () => context.read<SessionProvider>().continueAsGuest(),
+        onBack: () {
+          context.read<SessionProvider>().continueAsGuest();
+          context.read<HomeProvider>().switchUserScope(null);
+        },
       );
     }
 
@@ -105,8 +114,16 @@ class _ECommerceAppState extends State<ECommerceApp> {
         onSignIn: () => context.read<SessionProvider>().openSignIn(),
         onRegister: () => context.read<SessionProvider>().openRegister(),
         onForgotPassword: () => context.read<SessionProvider>().openForgotPassword(),
-        onSocialLogin: (provider) => context.read<SessionProvider>().signInWithSocial(provider: provider),
-        onContinueAsGuest: () => context.read<SessionProvider>().continueAsGuest(),
+        onSocialLogin: (provider) async {
+          final sessionProv = context.read<SessionProvider>();
+          final homeProv = context.read<HomeProvider>();
+          await sessionProv.signInWithSocial(provider: provider);
+          homeProv.switchUserScope(sessionProv.userEmail);
+        },
+        onContinueAsGuest: () {
+          context.read<SessionProvider>().continueAsGuest();
+          context.read<HomeProvider>().switchUserScope(null);
+        },
       );
     }
 
