@@ -461,26 +461,30 @@ class ProfileScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.grey.shade200),
       ),
-      child: ListTile(
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFF0F5),
-            borderRadius: BorderRadius.circular(12),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18),
+        child: ListTile(
+          leading: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF0F5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: const Color(0xFFFF2D6F), size: 20),
           ),
-          child: Icon(icon, color: const Color(0xFFFF2D6F), size: 20),
+          title: Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF1A1A1A)),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+          ),
+          trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+          onTap: onTap,
         ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Color(0xFF1A1A1A)),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-        ),
-        trailing: const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
-        onTap: onTap,
       ),
     );
   }

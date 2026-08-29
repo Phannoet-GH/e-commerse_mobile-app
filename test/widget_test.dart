@@ -924,4 +924,72 @@ void main() {
     expect(provider.orders.length, 1);
     expect(provider.cart, isEmpty); // because User A placed the order earlier and cleared their cart
   });
+
+  testWidgets('sign in success opens Home screen tab index 0 instead of Profile',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'hasOpenedBefore_v3': true,
+      'isSignedIn': false,
+    });
+
+    final storage = LocalStorageService();
+    await storage.init();
+    final homeProvider = HomeProvider(storage: storage);
+    final sessionProvider = SessionProvider(storage: storage);
+
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: homeProvider),
+          ChangeNotifierProvider.value(value: sessionProvider),
+        ],
+        child: const ECommerceApp(
+          splashDuration: Duration(milliseconds: 100),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 150));
+    await tester.pumpAndSettle();
+
+    // 1. App starts on Onboarding -> Continue as Guest
+    if (find.text('Continue as Guest').evaluate().isNotEmpty) {
+      await tester.tap(find.text('Continue as Guest').first);
+      await tester.pumpAndSettle();
+    }
+
+    // 2. Select Profile tab (index 4)
+    homeProvider.setSelectedIndex(4);
+    await tester.pumpAndSettle();
+    expect(homeProvider.selectedIndex, 4);
+    expect(find.text('Guest Shopper'), findsOneWidget);
+
+    // 3. Tap 'Sign In / Register' button from Profile
+    final signInRegisterBtn = find.text('Sign In / Register');
+    await tester.ensureVisible(signInRegisterBtn);
+    await tester.tap(signInRegisterBtn);
+    await tester.pumpAndSettle();
+
+    // 4. Now on LoginScreen -> Enter database credentials and Sign In
+    final textFields = find.byType(TextField);
+    await tester.enterText(textFields.at(0), 'emma.wills@example.com');
+    await tester.enterText(textFields.at(1), 'password123');
+
+    final signInBtn = find.widgetWithText(ElevatedButton, 'Sign In');
+    await tester.ensureVisible(signInBtn);
+    await tester.tap(signInBtn);
+    await tester.pumpAndSettle();
+
+    // 5. Verify sign in success switched to Home screen (index 0) instead of staying on Profile
+    expect(sessionProvider.isSignedIn, isTrue);
+    expect(homeProvider.selectedIndex, 0);
+    expect(find.text('Categories'), findsOneWidget);
+    expect(find.text('Emma Wills'), findsOneWidget);
+  });
 }

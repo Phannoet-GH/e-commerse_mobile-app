@@ -80,7 +80,9 @@ class _ECommerceAppState extends State<ECommerceApp> {
       return RegisterScreen(
         onRegisterSuccess: () {
           final email = context.read<SessionProvider>().userEmail;
-          context.read<HomeProvider>().switchUserScope(email);
+          final homeProv = context.read<HomeProvider>();
+          homeProv.switchUserScope(email);
+          homeProv.setSelectedIndex(0);
         },
         onBackToSignIn: () => context.read<SessionProvider>().backToSignIn(),
       );
@@ -91,13 +93,16 @@ class _ECommerceAppState extends State<ECommerceApp> {
       return LoginScreen(
         onLoginSuccess: () {
           final email = context.read<SessionProvider>().userEmail;
-          context.read<HomeProvider>().switchUserScope(email);
+          final homeProv = context.read<HomeProvider>();
+          homeProv.switchUserScope(email);
+          homeProv.setSelectedIndex(0);
         },
         onNavigateToRegister: () => context.read<SessionProvider>().openRegister(),
         onForgotPassword: () => context.read<SessionProvider>().openForgotPassword(),
         onBack: () {
           context.read<SessionProvider>().continueAsGuest();
           context.read<HomeProvider>().switchUserScope(null);
+          context.read<HomeProvider>().setSelectedIndex(0);
         },
       );
     }
@@ -114,10 +119,12 @@ class _ECommerceAppState extends State<ECommerceApp> {
           final homeProv = context.read<HomeProvider>();
           await sessionProv.signInWithSocial(provider: provider);
           homeProv.switchUserScope(sessionProv.userEmail);
+          homeProv.setSelectedIndex(0);
         },
         onContinueAsGuest: () {
           context.read<SessionProvider>().continueAsGuest();
           context.read<HomeProvider>().switchUserScope(null);
+          context.read<HomeProvider>().setSelectedIndex(0);
         },
       );
     }
