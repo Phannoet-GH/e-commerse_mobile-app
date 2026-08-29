@@ -914,19 +914,57 @@ function seedDatabase(): void {
         $coupStmt->execute($coup);
     }
 
-    // 5. Seed Demo User
-    $demoPassword = password_hash('password123', PASSWORD_BCRYPT);
-    $userStmt = $pdo->prepare("INSERT INTO users (id, name, email, password_hash, phone, role) VALUES (:id, :name, :email, :password_hash, :phone, :role)");
-    $userStmt->execute([
-        'id' => 'usr_1',
-        'name' => 'Demo Customer',
-        'email' => 'customer@luxecart.com',
-        'password_hash' => $demoPassword,
-        'phone' => '+1 (555) 234-5678',
-        'role' => 'customer',
-    ]);
+    // 5. Seed Registered Users
+    $defaultPassword = password_hash('password123', PASSWORD_BCRYPT);
+    $users = [
+        [
+            'id' => 'usr_1',
+            'name' => 'Demo Customer',
+            'email' => 'customer@luxecart.com',
+            'password_hash' => $defaultPassword,
+            'phone' => '+1 (555) 234-5678',
+            'role' => 'customer',
+        ],
+        [
+            'id' => 'usr_2',
+            'name' => 'Emma Wills',
+            'email' => 'emma.wills@example.com',
+            'password_hash' => $defaultPassword,
+            'phone' => '+1 (555) 234-5678',
+            'role' => 'customer',
+        ],
+        [
+            'id' => 'usr_3',
+            'name' => 'Sophia Lauren',
+            'email' => 'sophia.lauren@example.com',
+            'password_hash' => $defaultPassword,
+            'phone' => '+1 (555) 876-5432',
+            'role' => 'customer',
+        ],
+        [
+            'id' => 'usr_4',
+            'name' => 'John Doe',
+            'email' => 'john.doe@example.com',
+            'password_hash' => $defaultPassword,
+            'phone' => '+1 (555) 987-6543',
+            'role' => 'customer',
+        ],
+        [
+            'id' => 'usr_admin',
+            'name' => 'LuxeCart Admin',
+            'email' => 'admin@luxecart.com',
+            'password_hash' => $defaultPassword,
+            'phone' => '+1 (555) 000-1111',
+            'role' => 'admin',
+        ],
+    ];
 
-    echo "[SEED SUCCESS] Database seeded with " . count($categories) . " categories, " . count($products) . " products, " . count($coupons) . " coupons, and 1 demo user.\n";
+    $userStmt = $pdo->prepare("INSERT INTO users (id, name, email, password_hash, phone, role) VALUES (:id, :name, :email, :password_hash, :phone, :role)");
+    foreach ($users as $user) {
+        $userStmt->execute($user);
+    }
+
+    echo "[SEED SUCCESS] Database seeded with " . count($categories) . " categories, " . count($products) . " products, " . count($coupons) . " coupons, and " . count($users) . " users.\n";
 }
 
 if (php_sapi_name() === 'cli' && basename(__FILE__) === basename($_SERVER['PHP_SELF'])) {
