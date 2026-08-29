@@ -34,25 +34,44 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _handleSignIn() {
+  Future<void> _handleSignIn() async {
+    FocusScope.of(context).unfocus();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
     // 1. Empty Field Check
     if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please enter both your email address and password.'),
           backgroundColor: Color(0xFF1E1E2F),
+          duration: Duration(seconds: 2),
         ),
       );
       return;
     }
 
-    context.read<SessionProvider>().completeSignIn(
+    // 2. Strict Database Authentication
+    final error = await context.read<SessionProvider>().authenticateUser(
           email: email,
-          name: email.split('@').first,
+          password: password,
         );
+
+    if (!mounted) return;
+
+    if (error != null) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: const Color(0xFF1E1E2F),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
     widget.onLoginSuccess();
   }
 

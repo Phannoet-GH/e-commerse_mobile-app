@@ -34,7 +34,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _handleRegister() {
+  Future<void> _handleRegister() async {
+    FocusScope.of(context).unfocus();
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -76,12 +77,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     final resolvedName = name.isNotEmpty ? name : email.split('@').first;
 
-    context.read<SessionProvider>().register(
+    final error = await context.read<SessionProvider>().register(
           name: resolvedName,
           email: email,
           password: password,
           phone: phone.isNotEmpty ? phone : null,
         );
+
+    if (!mounted) return;
+
+    if (error != null) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error),
+          backgroundColor: const Color(0xFF1E1E2F),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
 
     widget.onRegisterSuccess();
   }

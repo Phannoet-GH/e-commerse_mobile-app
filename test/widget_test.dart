@@ -765,6 +765,56 @@ void main() {
     expect(sessionProvider.isSignedIn, isTrue);
   });
 
+  testWidgets('LoginScreen verifies credentials against database rejecting unknown users and accepting registered users',
+      (WidgetTester tester) async {
+    bool loginSuccess = false;
+    final sessionProvider = SessionProvider();
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: sessionProvider,
+        child: MaterialApp(
+          home: LoginScreen(
+            onLoginSuccess: () {
+              loginSuccess = true;
+            },
+            onNavigateToRegister: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final textFields = find.byType(TextField);
+    final signInBtn = find.widgetWithText(ElevatedButton, 'Sign In');
+
+    // 1. Unknown user -> Rejected
+    await tester.enterText(textFields.at(0), 'unknown.ghost@domain.com');
+    await tester.enterText(textFields.at(1), 'password123');
+    await tester.ensureVisible(signInBtn);
+    await tester.tap(signInBtn);
+    await tester.pumpAndSettle();
+    expect(loginSuccess, isFalse);
+
+    // 2. Existing user with wrong password -> Rejected
+    await tester.enterText(textFields.at(0), 'emma.wills@example.com');
+    await tester.enterText(textFields.at(1), 'wrongPassword99');
+    await tester.ensureVisible(signInBtn);
+    await tester.tap(signInBtn);
+    await tester.pumpAndSettle();
+    expect(loginSuccess, isFalse);
+
+    // 3. Existing user with correct database password -> Accepted
+    await tester.enterText(textFields.at(0), 'emma.wills@example.com');
+    await tester.enterText(textFields.at(1), 'password123');
+    await tester.ensureVisible(signInBtn);
+    await tester.tap(signInBtn);
+    await tester.pumpAndSettle();
+    expect(loginSuccess, isTrue);
+    expect(sessionProvider.isSignedIn, isTrue);
+    expect(sessionProvider.userName, 'Emma Wills');
+  });
+
   testWidgets('RegisterScreen validates email, 8-character password length and empty fields',
       (WidgetTester tester) async {
     bool registered = false;

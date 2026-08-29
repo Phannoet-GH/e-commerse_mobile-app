@@ -1,14 +1,19 @@
 import 'package:flutter/foundation.dart';
 
+import '../data/services/api_service.dart';
 import '../data/services/local_storage_service.dart';
 
 class SessionProvider extends ChangeNotifier {
-  SessionProvider({LocalStorageService? storage})
-      : _storage = storage ?? LocalStorageService() {
+  SessionProvider({
+    LocalStorageService? storage,
+    ApiService? apiService,
+  })  : _storage = storage ?? LocalStorageService(),
+        _apiService = apiService ?? ApiService() {
     load();
   }
 
   final LocalStorageService _storage;
+  final ApiService _apiService;
 
   bool _isReady = false;
   bool _isSignedIn = false;
@@ -101,6 +106,49 @@ class SessionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Strict authentication against the database.
+  /// Returns null on success, or an error string if invalid or not found.
+  Future<String?> authenticateUser({
+    required String email,
+    required String password,
+  }) async {
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanPassword = password.trim();
+
+    if (cleanEmail.isEmpty || cleanPassword.isEmpty) {
+      return 'Email and password are required.';
+    }
+
+    // 1. Try Backend API Authentication first
+    final apiUser = await _apiService.login(email: cleanEmail, password: cleanPassword);
+    if (apiUser != null) {
+      final name = (apiUser['name'] as String?) ?? cleanEmail.split('@').first;
+      final phone = apiUser['phone'] as String?;
+      await _storage.saveRegisteredUser(
+        name: name,
+        email: cleanEmail,
+        password: cleanPassword,
+        phone: phone,
+      );
+      await completeSignIn(email: cleanEmail, name: name);
+      return null;
+    }
+
+    // 2. Validate against local database store
+    final localUser = _storage.findUserByEmail(cleanEmail);
+    if (localUser != null) {
+      if (localUser['password'] == cleanPassword) {
+        final name = (localUser['name'] as String?) ?? cleanEmail.split('@').first;
+        await completeSignIn(email: cleanEmail, name: name);
+        return null;
+      } else {
+        return 'Incorrect password. Please verify and try again.';
+      }
+    }
+
+    return 'No account found with this email in the database. Please register first.';
+  }
+
   Future<void> completeSignIn({String? email, String? name}) async {
     _isSignedIn = true;
     _isGuest = false;
@@ -114,17 +162,46 @@ class SessionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> register({
+  /// Strict registration in the database.
+  /// Returns null on success, or an error string if already registered.
+  Future<String?> register({
     required String name,
     required String email,
     required String password,
     String? phone,
   }) async {
-    _userName = name;
-    _userEmail = email;
+    final cleanEmail = email.trim().toLowerCase();
+    final cleanPassword = password.trim();
+    final cleanName = name.trim().isNotEmpty ? name.trim() : cleanEmail.split('@').first;
+
+    // Check if user already exists in database
+    final existingUser = _storage.findUserByEmail(cleanEmail);
+    if (existingUser != null) {
+      return 'An account with this email is already registered.';
+    }
+
+    // Register via backend API if available
+    await _apiService.register(
+      name: cleanName,
+      email: cleanEmail,
+      password: cleanPassword,
+      phone: phone,
+    );
+
+    // Save in database / local storage
+    await _storage.saveRegisteredUser(
+      name: cleanName,
+      email: cleanEmail,
+      password: cleanPassword,
+      phone: phone,
+    );
+
+    _userName = cleanName;
+    _userEmail = cleanEmail;
     if (phone != null && phone.isNotEmpty) _userPhone = phone;
     await _storage.setUserProfile(name: _userName, email: _userEmail, phone: _userPhone);
-    await completeSignIn(email: email, name: name);
+    await completeSignIn(email: cleanEmail, name: cleanName);
+    return null;
   }
 
   Future<void> signInWithSocial({
@@ -134,6 +211,11 @@ class SessionProvider extends ChangeNotifier {
   }) async {
     final resolvedName = name ?? (provider == 'google' ? 'Google Member' : 'Facebook Member');
     final resolvedEmail = email ?? (provider == 'google' ? 'google.user@example.com' : 'facebook.user@example.com');
+    await _storage.saveRegisteredUser(
+      name: resolvedName,
+      email: resolvedEmail,
+      password: 'social_login',
+    );
     await completeSignIn(email: resolvedEmail, name: resolvedName);
   }
 

@@ -22,6 +22,8 @@ class LocalStorageService {
   static const searchHistoryBaseKey = 'searchHistory_v3';
   static const notificationsBaseKey = 'notifications_v3';
 
+  static const registeredUsersKey = 'registered_users_v3';
+
   SharedPreferences? _prefs;
 
   Future<void> init() async {
@@ -59,6 +61,73 @@ class LocalStorageService {
     if (phone != null) {
       await _prefs?.setString(userPhoneKey, phone);
     }
+  }
+
+  // --- Registered Users Persistence & Verification ---
+  Map<String, Map<String, dynamic>> getRegisteredUsers() {
+    final defaultUsers = <String, Map<String, dynamic>>{
+      'emma.wills@example.com': {
+        'name': 'Emma Wills',
+        'email': 'emma.wills@example.com',
+        'password': 'password123',
+        'phone': '+1 (555) 234-5678',
+      },
+      'sophia.lauren@example.com': {
+        'name': 'Sophia Lauren',
+        'email': 'sophia.lauren@example.com',
+        'password': 'password123',
+        'phone': '+1 (555) 876-5432',
+      },
+      'john.doe@example.com': {
+        'name': 'John Doe',
+        'email': 'john.doe@example.com',
+        'password': 'password123',
+        'phone': '+1 (555) 987-6543',
+      },
+    };
+
+    final raw = _prefs?.getString(registeredUsersKey);
+    if (raw == null || raw.isEmpty) return defaultUsers;
+
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      final map = <String, Map<String, dynamic>>{...defaultUsers};
+      decoded.forEach((k, v) {
+        if (v is Map) {
+          map[k.toLowerCase()] = Map<String, dynamic>.from(v);
+        }
+      });
+      return map;
+    } catch (_) {
+      return defaultUsers;
+    }
+  }
+
+  Future<void> saveRegisteredUser({
+    required String name,
+    required String email,
+    required String password,
+    String? phone,
+  }) async {
+    final users = getRegisteredUsers();
+    users[email.toLowerCase().trim()] = {
+      'name': name.trim(),
+      'email': email.toLowerCase().trim(),
+      'password': password,
+      'phone': phone?.trim() ?? '+1 (555) 000-0000',
+    };
+    await _prefs?.setString(registeredUsersKey, jsonEncode(users));
+  }
+
+  Map<String, dynamic>? findUserByEmail(String email) {
+    final users = getRegisteredUsers();
+    return users[email.toLowerCase().trim()];
+  }
+
+  bool verifyUserCredentials(String email, String password) {
+    final user = findUserByEmail(email);
+    if (user == null) return false;
+    return user['password'] == password;
   }
 
   // --- Cart Persistence (Per-User Scoped) ---
