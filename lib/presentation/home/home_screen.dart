@@ -4,9 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../data/models/category_item.dart';
 import '../../data/models/product.dart';
-import '../../providers/home_provider.dart';
 import '../../providers/session_provider.dart';
-import '../account/address_manager_screen.dart';
 import '../notifications/notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -113,23 +111,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Optional provider context reading
     bool isSignedIn = false;
-    String userName = '';
-    String addressTitle = 'Deliver to Home';
+    String userName = 'Guest User';
     SessionProvider? sessionProv;
     try {
       final session = context.watch<SessionProvider>();
       sessionProv = session;
       isSignedIn = session.isSignedIn;
-      if (session.isSignedIn && session.userName.trim().isNotEmpty) {
-        userName = session.userName.trim().split(' ').first;
-      }
-      final homeProv = context.watch<HomeProvider>();
-      if (homeProv.addresses.isNotEmpty) {
-        final def = homeProv.addresses.firstWhere(
-          (a) => a.isDefault,
-          orElse: () => homeProv.addresses.first,
-        );
-        addressTitle = '${def.street}, ${def.city}';
+      if (session.isSignedIn) {
+        if (session.userName.trim().isNotEmpty) {
+          userName = session.userName.trim();
+        } else if (session.userEmail.isNotEmpty) {
+          userName = session.userEmail.split('@').first;
+        }
       }
     } catch (_) {}
 
@@ -200,85 +193,38 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  isSignedIn
-                                      ? '${_getGreeting()}, $userName'
-                                      : 'Welcome to LuxeCart',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w800,
-                                    color: Color(0xFF1A1A1A),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 2),
-                                if (isSignedIn)
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (_) => const AddressManagerScreen(),
-                                        ),
-                                      );
-                                    },
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.location_on_rounded,
-                                          size: 13,
-                                          color: Color(0xFFFF2D6F),
-                                        ),
-                                        const SizedBox(width: 3),
-                                        Flexible(
-                                          child: Text(
-                                            addressTitle,
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 2),
-                                        Icon(
-                                          Icons.keyboard_arrow_down_rounded,
-                                          size: 14,
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                else
-                                  GestureDetector(
-                                    onTap: () => sessionProv?.openSignIn(),
-                                    child: const Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          'Sign In for VIP Deals & Perks',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w700,
-                                            color: Color(0xFFFF2D6F),
-                                          ),
-                                        ),
-                                        SizedBox(width: 3),
-                                        Icon(
-                                          Icons.arrow_forward_ios_rounded,
-                                          size: 10,
-                                          color: Color(0xFFFF2D6F),
-                                        ),
-                                      ],
+                            child: GestureDetector(
+                              onTap: () {
+                                if (!isSignedIn) {
+                                  sessionProv?.openSignIn();
+                                }
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _getGreeting(),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey.shade600,
+                                      letterSpacing: 0.2,
                                     ),
                                   ),
-                              ],
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    userName,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF1A1A1A),
+                                      letterSpacing: -0.4,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],

@@ -160,8 +160,7 @@ void main() {
     // Now on HomeScreen
     expect(find.text('Categories'), findsOneWidget);
     expect(find.text('Home'), findsWidgets);
-    expect(find.text('Welcome to LuxeCart'), findsOneWidget);
-    expect(find.text('Sign In for VIP Deals & Perks'), findsOneWidget);
+    expect(find.text('Guest User'), findsOneWidget);
   });
 
   testWidgets('authenticated user with saved session bypasses onboarding and opens directly to Home dashboard',
