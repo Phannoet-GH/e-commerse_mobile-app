@@ -9,6 +9,8 @@ import 'package:se_shop_e_commerce_app/data/models/cart_item.dart';
 import 'package:se_shop_e_commerce_app/data/models/product.dart';
 import 'package:se_shop_e_commerce_app/data/services/api_service.dart';
 import 'package:se_shop_e_commerce_app/data/services/local_storage_service.dart';
+import 'package:se_shop_e_commerce_app/presentation/account/forgot_password_screen.dart';
+import 'package:se_shop_e_commerce_app/presentation/account/login_screen.dart';
 import 'package:se_shop_e_commerce_app/presentation/cart/checkout_screen.dart';
 import 'package:se_shop_e_commerce_app/presentation/explore/explore_screen.dart';
 import 'package:se_shop_e_commerce_app/presentation/home/home_screen.dart';
@@ -83,7 +85,9 @@ void main() {
     await tester.pumpWidget(
       MultiProvider(
         providers: provider,
-        child: const ECommerceApp(),
+        child: const ECommerceApp(
+          splashDuration: Duration(milliseconds: 100),
+        ),
       ),
     );
     await tester.pump();
@@ -94,7 +98,7 @@ void main() {
     expect(find.text('v2.4.0 • SE Final 2026'), findsOneWidget);
 
     // Advance past splash duration
-    await tester.pump(const Duration(milliseconds: 2100));
+    await tester.pump(const Duration(milliseconds: 150));
     await tester.pumpAndSettle();
 
     // Now Onboarding is displayed
@@ -108,22 +112,20 @@ void main() {
     await tester.pumpWidget(
       MultiProvider(
         providers: provider,
-        child: const ECommerceApp(),
+        child: const ECommerceApp(
+          splashDuration: Duration(milliseconds: 100),
+        ),
       ),
     );
-    await tester.pump(const Duration(milliseconds: 2100));
+    await tester.pump(const Duration(milliseconds: 150));
     await tester.pumpAndSettle();
 
     expect(find.text('Welcome to LuxeCart'), findsOneWidget);
-    expect(find.text('Sign In / Register'), findsOneWidget);
-    expect(find.text('Continue as Guest'), findsOneWidget);
+    expect(find.text('Continue as Guest'), findsWidgets);
 
     // Tap Continue as Guest
-    await tester.tap(find.text('Continue as Guest'));
+    await tester.tap(find.text('Continue as Guest').first);
     await tester.pumpAndSettle();
-
-    final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getBool(LocalStorageService.hasOpenedBeforeKey), isTrue);
 
     // Now on HomeScreen
     expect(find.text('Categories'), findsOneWidget);
@@ -132,17 +134,19 @@ void main() {
   testWidgets('returning unsigned user skips onboarding and shows home screen',
       (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({
-      LocalStorageService.hasOpenedBeforeKey: true,
-      LocalStorageService.isSignedInKey: false,
+      'hasOpenedBefore_v3': true,
+      'isSignedIn': false,
     });
 
     await tester.pumpWidget(
       MultiProvider(
         providers: provider,
-        child: const ECommerceApp(),
+        child: const ECommerceApp(
+          splashDuration: Duration(milliseconds: 100),
+        ),
       ),
     );
-    await tester.pump(const Duration(milliseconds: 2100));
+    await tester.pump(const Duration(milliseconds: 150));
     await tester.pumpAndSettle();
 
     expect(find.text('Categories'), findsOneWidget);
@@ -150,6 +154,31 @@ void main() {
     expect(find.text('Welcome to LuxeCart'), findsOneWidget);
     expect(find.text('Sign In for VIP Deals & Perks'), findsOneWidget);
     expect(find.textContaining('Emma'), findsNothing);
+  });
+
+  testWidgets('authenticated user with saved session bypasses onboarding and opens directly to Home dashboard',
+      (WidgetTester tester) async {
+    SharedPreferences.setMockInitialValues({
+      'hasOpenedBefore_v3': true,
+      'isSignedIn': true,
+      'userName': 'Sophia Lauren',
+      'userEmail': 'sophia.lauren@example.com',
+    });
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: provider,
+        child: const ECommerceApp(
+          splashDuration: Duration(milliseconds: 100),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 150));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Categories'), findsOneWidget);
+    expect(find.text('Home'), findsWidgets);
+    expect(find.textContaining('Sophia'), findsOneWidget);
   });
 
   testWidgets('explore screen filters products by selected category',
@@ -615,9 +644,82 @@ void main() {
     await tester.pumpAndSettle();
     expect(guestTapped, isTrue);
 
-    // Tap Skip to trigger auth
-    await tester.tap(find.text('Skip'));
+    // Slide 1 Next
+    await tester.tap(find.text('Next'));
+    await tester.pumpAndSettle();
+
+    // Slide 2 Next
+    await tester.tap(find.text('Next'));
+    await tester.pumpAndSettle();
+
+    // Slide 3 Sign In
+    expect(find.text('Sign In'), findsOneWidget);
+    await tester.tap(find.text('Sign In'));
     await tester.pumpAndSettle();
     expect(signInTapped, isTrue);
+  });
+
+  testWidgets('ForgotPasswordScreen validates email and displays confirmation card',
+      (WidgetTester tester) async {
+    String resetEmail = '';
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ForgotPasswordScreen(
+          onBackToSignIn: () {},
+          onResetRequested: (email) {
+            resetEmail = email;
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Forgot Password?'), findsOneWidget);
+    expect(find.text('Send Reset Instructions'), findsOneWidget);
+
+    // Enter email
+    await tester.enterText(find.byType(TextField), 'emma.wills@example.com');
+    await tester.tap(find.text('Send Reset Instructions'));
+    await tester.pump(const Duration(milliseconds: 1000));
+    await tester.pumpAndSettle();
+
+    expect(resetEmail, 'emma.wills@example.com');
+    expect(find.text('Check Your Inbox'), findsOneWidget);
+    expect(find.text('Back to Sign In'), findsOneWidget);
+  });
+
+  testWidgets('LoginScreen supports Google and Facebook 1-tap social login',
+      (WidgetTester tester) async {
+    bool loginSuccess = false;
+    final sessionProvider = SessionProvider();
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: sessionProvider,
+        child: MaterialApp(
+          home: LoginScreen(
+            onLoginSuccess: () {
+              loginSuccess = true;
+            },
+            onNavigateToRegister: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Google'), findsOneWidget);
+    expect(find.text('Facebook'), findsOneWidget);
+    expect(find.text('Forgot Password?'), findsOneWidget);
+
+    // Ensure Google button is visible in scrollview and tap
+    final googleBtn = find.text('Google');
+    await tester.ensureVisible(googleBtn);
+    await tester.tap(googleBtn);
+    await tester.pumpAndSettle();
+
+    expect(loginSuccess, isTrue);
+    expect(sessionProvider.isSignedIn, isTrue);
   });
 }

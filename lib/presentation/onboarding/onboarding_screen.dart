@@ -3,11 +3,19 @@ import 'package:flutter/material.dart';
 class OnboardingScreen extends StatefulWidget {
   final VoidCallback onSignInOrRegister;
   final VoidCallback onContinueAsGuest;
+  final VoidCallback? onSignIn;
+  final VoidCallback? onRegister;
+  final VoidCallback? onForgotPassword;
+  final Function(String provider)? onSocialLogin;
 
   const OnboardingScreen({
     super.key,
     required this.onSignInOrRegister,
     required this.onContinueAsGuest,
+    this.onSignIn,
+    this.onRegister,
+    this.onForgotPassword,
+    this.onSocialLogin,
   });
 
   @override
@@ -52,12 +60,30 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOutCubic,
       );
     } else {
+      (widget.onSignIn ?? widget.onSignInOrRegister)();
+    }
+  }
+
+  void _handleSignIn() {
+    (widget.onSignIn ?? widget.onSignInOrRegister)();
+  }
+
+  void _handleRegister() {
+    (widget.onRegister ?? widget.onSignInOrRegister)();
+  }
+
+  void _handleSocial(String provider) {
+    if (widget.onSocialLogin != null) {
+      widget.onSocialLogin!(provider);
+    } else {
       widget.onSignInOrRegister();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isLastPage = _currentPage == _pages.length - 1;
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -76,7 +102,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
             child: Column(
               children: [
                 // Top Bar with Brand Pill & Skip Action
@@ -84,7 +110,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(20),
@@ -103,31 +129,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                       ),
                     ),
-                    if (_currentPage < _pages.length - 1)
-                      TextButton(
-                        onPressed: widget.onSignInOrRegister,
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    TextButton(
+                      onPressed: widget.onContinueAsGuest,
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      ),
+                      child: Text(
+                        'Skip',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.92),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
-                        child: Text(
-                          'Skip',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.92),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      )
-                    else
-                      const SizedBox(width: 48),
+                      ),
+                    ),
                   ],
                 ),
                 const Spacer(),
 
                 // Multi-Slide Carousel
                 SizedBox(
-                  height: 380,
+                  height: 320,
                   child: PageView.builder(
                     controller: _pageController,
                     itemCount: _pages.length,
@@ -139,7 +162,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         children: [
                           // Luxury Icon Circle with Glow
                           Container(
-                            padding: const EdgeInsets.all(26),
+                            padding: const EdgeInsets.all(22),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               shape: BoxShape.circle,
@@ -158,15 +181,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ),
                             child: Icon(
                               item.icon,
-                              size: 64,
+                              size: 54,
                               color: const Color(0xFFFF2D6F),
                             ),
                           ),
-                          const SizedBox(height: 28),
+                          const SizedBox(height: 20),
 
                           // Pill Badge
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.22),
                               borderRadius: BorderRadius.circular(10),
@@ -179,13 +202,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               item.badge,
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 10.5,
+                                fontSize: 10,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: 1.2,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 14),
+                          const SizedBox(height: 12),
 
                           // Title
                           Text(
@@ -193,13 +216,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 28,
+                              fontSize: 26,
                               fontWeight: FontWeight.w900,
                               height: 1.2,
                               letterSpacing: 0.2,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 8),
 
                           // Subtitle
                           Padding(
@@ -209,8 +232,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.90),
-                                fontSize: 15,
-                                height: 1.45,
+                                fontSize: 14,
+                                height: 1.4,
                                 fontWeight: FontWeight.w400,
                               ),
                             ),
@@ -230,8 +253,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       duration: const Duration(milliseconds: 280),
                       curve: Curves.easeOutCubic,
                       margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: _currentPage == index ? 26 : 8,
-                      height: 8,
+                      width: _currentPage == index ? 24 : 7,
+                      height: 7,
                       decoration: BoxDecoration(
                         color: _currentPage == index
                             ? Colors.white
@@ -253,68 +276,212 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                 const Spacer(),
 
-                // Primary Action Button (Sign In / Register on page 0, Next / Get Started)
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _onNext,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFFFF2D6F),
-                      elevation: 6,
-                      shadowColor: Colors.black.withValues(alpha: 0.25),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
+                // Action Area
+                if (!isLastPage) ...[
+                  // Primary Action Button (Next)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: _onNext,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFFFF2D6F),
+                        elevation: 6,
+                        shadowColor: Colors.black.withValues(alpha: 0.25),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Text(
+                            'Next',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          Icon(Icons.navigate_next_rounded, size: 20),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _currentPage == 0
-                              ? 'Sign In / Register'
-                              : (_currentPage == _pages.length - 1 ? 'Get Started' : 'Next'),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.4,
+                  ),
+                  const SizedBox(height: 6),
+
+                  // Secondary Action (Continue as Guest)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 40,
+                    child: TextButton(
+                      onPressed: widget.onContinueAsGuest,
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                      ),
+                      child: Text(
+                        'Continue as Guest',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.95),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  // Final Slide Full Auth Hub
+                  Row(
+                    children: [
+                      // Sign In Button
+                      Expanded(
+                        child: SizedBox(
+                          height: 50,
+                          child: ElevatedButton(
+                            onPressed: _handleSignIn,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFFFF2D6F),
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: const Text(
+                              'Sign In',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Icon(
-                          _currentPage == 0 || _currentPage == _pages.length - 1
-                              ? Icons.arrow_forward_rounded
-                              : Icons.navigate_next_rounded,
-                          size: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                // Secondary Action (Continue as Guest)
-                SizedBox(
-                  width: double.infinity,
-                  height: 44,
-                  child: TextButton(
-                    onPressed: widget.onContinueAsGuest,
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.white,
-                    ),
-                    child: Text(
-                      'Continue as Guest',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.95),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.3,
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      // Register Button
+                      Expanded(
+                        child: SizedBox(
+                          height: 50,
+                          child: OutlinedButton(
+                            onPressed: _handleRegister,
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: const BorderSide(color: Colors.white, width: 1.8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: const Text(
+                              'Register',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 6),
+                  const SizedBox(height: 12),
+
+                  // Social Logins (Google & Facebook)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: ElevatedButton(
+                            onPressed: () => _handleSocial('google'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white.withValues(alpha: 0.18),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(Icons.g_mobiledata_rounded, color: Colors.white, size: 24),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Google',
+                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: ElevatedButton(
+                            onPressed: () => _handleSocial('facebook'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white.withValues(alpha: 0.18),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Icon(Icons.facebook_rounded, color: Colors.white, size: 18),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Facebook',
+                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Bottom Utilities: Guest & Forgot Password
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: widget.onContinueAsGuest,
+                        child: Text(
+                          'Continue as Guest',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.95),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: widget.onForgotPassword ?? () => _handleSignIn(),
+                        child: Text(
+                          'Forgot Password?',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.95),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),

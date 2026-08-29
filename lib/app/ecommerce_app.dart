@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../core/theme/app_theme.dart';
+import '../presentation/account/forgot_password_screen.dart';
 import '../presentation/account/login_screen.dart';
 import '../presentation/account/register_screen.dart';
 import '../presentation/onboarding/onboarding_screen.dart';
@@ -12,7 +13,12 @@ import '../providers/session_provider.dart';
 import 'main_shell.dart';
 
 class ECommerceApp extends StatefulWidget {
-  const ECommerceApp({super.key});
+  final Duration? splashDuration;
+
+  const ECommerceApp({
+    super.key,
+    this.splashDuration,
+  });
 
   @override
   State<ECommerceApp> createState() => _ECommerceAppState();
@@ -45,9 +51,10 @@ class _ECommerceAppState extends State<ECommerceApp> {
   }
 
   Widget _home(SessionProvider session, HomeProvider homeProvider) {
+    // 1. Splash Screen: Displays unconditionally for 5000ms upon app open
     if (!session.isReady || !_splashFinished) {
       return SplashScreen(
-        duration: const Duration(milliseconds: 2000),
+        duration: widget.splashDuration ?? const Duration(milliseconds: 5000),
         onInitialized: () {
           if (mounted) {
             setState(() {
@@ -58,13 +65,22 @@ class _ECommerceAppState extends State<ECommerceApp> {
       );
     }
 
-    if (session.showOnboarding) {
-      return OnboardingScreen(
-        onSignInOrRegister: () => context.read<SessionProvider>().openSignIn(),
-        onContinueAsGuest: () => context.read<SessionProvider>().continueAsGuest(),
+    // 2. Forgot Password Screen
+    if (session.showForgotPassword) {
+      return ForgotPasswordScreen(
+        onBackToSignIn: () => context.read<SessionProvider>().backToSignIn(),
+        onResetRequested: (email) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Recovery email sent to $email'),
+              backgroundColor: const Color(0xFF1E1E2F),
+            ),
+          );
+        },
       );
     }
 
+    // 3. Register Screen
     if (session.showAuth && session.showRegister) {
       return RegisterScreen(
         onRegisterSuccess: () => context.read<SessionProvider>().completeSignIn(),
@@ -72,14 +88,29 @@ class _ECommerceAppState extends State<ECommerceApp> {
       );
     }
 
+    // 4. Login Screen
     if (session.showAuth) {
       return LoginScreen(
         onLoginSuccess: () => context.read<SessionProvider>().completeSignIn(),
         onNavigateToRegister: () => context.read<SessionProvider>().openRegister(),
+        onForgotPassword: () => context.read<SessionProvider>().openForgotPassword(),
         onBack: () => context.read<SessionProvider>().continueAsGuest(),
       );
     }
 
+    // 5. Onboarding / Auth Gateway for First-Time / Unauthenticated users
+    if (session.showOnboarding) {
+      return OnboardingScreen(
+        onSignInOrRegister: () => context.read<SessionProvider>().openSignIn(),
+        onSignIn: () => context.read<SessionProvider>().openSignIn(),
+        onRegister: () => context.read<SessionProvider>().openRegister(),
+        onForgotPassword: () => context.read<SessionProvider>().openForgotPassword(),
+        onSocialLogin: (provider) => context.read<SessionProvider>().signInWithSocial(provider: provider),
+        onContinueAsGuest: () => context.read<SessionProvider>().continueAsGuest(),
+      );
+    }
+
+    // 6. Selected Product Detail Overlay
     if (homeProvider.selectedProduct != null) {
       final product = homeProvider.selectedProduct!;
       return DetailScreen(
@@ -107,6 +138,7 @@ class _ECommerceAppState extends State<ECommerceApp> {
       );
     }
 
+    // 7. Direct Entry to Main Dashboard / Home Screen (Authenticated or Guest)
     return const MainShell();
   }
 }

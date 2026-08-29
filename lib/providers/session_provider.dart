@@ -16,6 +16,7 @@ class SessionProvider extends ChangeNotifier {
   bool _showFirstLaunchOnboarding = false;
   bool _showAuth = false;
   bool _showRegister = false;
+  bool _showForgotPassword = false;
 
   String _userName = '';
   String _userEmail = '';
@@ -25,12 +26,13 @@ class SessionProvider extends ChangeNotifier {
   bool get isSignedIn => _isSignedIn;
   bool get showAuth => _showAuth;
   bool get showRegister => _showRegister;
+  bool get showForgotPassword => _showForgotPassword;
   String get userName => _userName;
   String get userEmail => _userEmail;
   String get userPhone => _userPhone;
 
   bool get showOnboarding =>
-      _isReady && _showFirstLaunchOnboarding && !_isSignedIn && !_showAuth;
+      _isReady && _showFirstLaunchOnboarding && !_isSignedIn && !_showAuth && !_showForgotPassword;
 
   Future<void> load() async {
     await _storage.init();
@@ -58,6 +60,7 @@ class SessionProvider extends ChangeNotifier {
     _showFirstLaunchOnboarding = true;
     _showAuth = false;
     _showRegister = false;
+    _showForgotPassword = false;
     await _storage.setHasOpenedBefore(false);
     notifyListeners();
   }
@@ -66,6 +69,7 @@ class SessionProvider extends ChangeNotifier {
     _showFirstLaunchOnboarding = true;
     _showAuth = false;
     _showRegister = false;
+    _showForgotPassword = false;
     notifyListeners();
   }
 
@@ -74,6 +78,7 @@ class SessionProvider extends ChangeNotifier {
     _showFirstLaunchOnboarding = false;
     _showAuth = false;
     _showRegister = false;
+    _showForgotPassword = false;
     notifyListeners();
   }
 
@@ -82,17 +87,28 @@ class SessionProvider extends ChangeNotifier {
     _showFirstLaunchOnboarding = false;
     _showAuth = true;
     _showRegister = false;
+    _showForgotPassword = false;
     notifyListeners();
   }
 
   void openRegister() {
     _showAuth = true;
     _showRegister = true;
+    _showForgotPassword = false;
+    notifyListeners();
+  }
+
+  void openForgotPassword() {
+    _showAuth = true;
+    _showRegister = false;
+    _showForgotPassword = true;
     notifyListeners();
   }
 
   void backToSignIn() {
     _showRegister = false;
+    _showForgotPassword = false;
+    _showAuth = true;
     notifyListeners();
   }
 
@@ -101,6 +117,7 @@ class SessionProvider extends ChangeNotifier {
     _isSignedIn = true;
     _showAuth = false;
     _showRegister = false;
+    _showForgotPassword = false;
     if (email != null && email.isNotEmpty) _userEmail = email;
     if (name != null && name.isNotEmpty) _userName = name;
     await _storage.setUserProfile(name: _userName, email: _userEmail);
@@ -121,6 +138,16 @@ class SessionProvider extends ChangeNotifier {
     await completeSignIn(email: email, name: name);
   }
 
+  Future<void> signInWithSocial({
+    required String provider,
+    String? email,
+    String? name,
+  }) async {
+    final resolvedName = name ?? (provider == 'google' ? 'Google Member' : 'Facebook Member');
+    final resolvedEmail = email ?? (provider == 'google' ? 'google.user@example.com' : 'facebook.user@example.com');
+    await completeSignIn(email: resolvedEmail, name: resolvedName);
+  }
+
   Future<void> updateProfile({
     required String name,
     required String email,
@@ -137,6 +164,7 @@ class SessionProvider extends ChangeNotifier {
     _isSignedIn = false;
     _showAuth = true;
     _showRegister = false;
+    _showForgotPassword = false;
     await _storage.setSignedIn(false);
     notifyListeners();
   }

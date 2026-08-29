@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 /// Ultra-modern luxury Splash Screen.
 /// Displays an animated brand emblem with pulsing glowing rings,
-/// shimmering typography, and animated loading indicators.
+/// shimmering typography, and animated loading indicators across 5000ms.
 class SplashScreen extends StatefulWidget {
   final VoidCallback onInitialized;
   final Duration duration;
@@ -11,7 +11,7 @@ class SplashScreen extends StatefulWidget {
   const SplashScreen({
     super.key,
     required this.onInitialized,
-    this.duration = const Duration(milliseconds: 2000),
+    this.duration = const Duration(milliseconds: 5000),
   });
 
   @override
@@ -29,7 +29,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 1400),
     );
 
     _scaleAnimation = CurvedAnimation(
@@ -188,11 +188,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                 child: Column(
                   children: [
                     SizedBox(
-                      width: 48,
+                      width: 56,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(4),
                         child: const LinearProgressIndicator(
-                          minHeight: 3,
+                          minHeight: 3.5,
                           backgroundColor: Colors.white24,
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),

@@ -46,7 +46,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password: password,
         phone: phone,
       );
+    } else {
+      context.read<SessionProvider>().register(
+        name: 'Emma Wills',
+        email: 'emma.wills@email.com',
+        password: 'password123',
+      );
     }
+    widget.onRegisterSuccess();
+  }
+
+  void _handleSocialRegister(String provider) {
+    context.read<SessionProvider>().signInWithSocial(provider: provider);
     widget.onRegisterSuccess();
   }
 
@@ -114,7 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _passwordController,
                 obscureText: true,
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 height: 54,
@@ -122,6 +133,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   onPressed: _handleRegister,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFF2D6F),
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -133,6 +145,85 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 20),
+
+              // Social Logins Divider
+              Row(
+                children: [
+                  Expanded(child: Divider(color: Colors.grey.shade300)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Text(
+                      'or register with',
+                      style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                    ),
+                  ),
+                  Expanded(child: Divider(color: Colors.grey.shade300)),
+                ],
+              ),
+              const SizedBox(height: 18),
+
+              // Social Login Buttons (Google & Facebook)
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => _handleSocialRegister('google'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        side: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.g_mobiledata_rounded, color: Color(0xFFEA4335), size: 28),
+                          SizedBox(width: 4),
+                          Text(
+                            'Google',
+                            style: TextStyle(
+                              color: Color(0xFF1A1A1A),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => _handleSocialRegister('facebook'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        side: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.facebook_rounded, color: Color(0xFF1877F2), size: 24),
+                          SizedBox(width: 8),
+                          Text(
+                            'Facebook',
+                            style: TextStyle(
+                              color: Color(0xFF1A1A1A),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
               Center(
                 child: TextButton(
                   onPressed: widget.onBackToSignIn,
