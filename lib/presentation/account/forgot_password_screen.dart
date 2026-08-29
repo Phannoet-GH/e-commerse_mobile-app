@@ -301,24 +301,33 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header Icon
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF0F5),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: const Color(0xFFFF2D6F).withValues(alpha: 0.15)),
-                ),
-                child: Icon(
-                  _currentStep == _ResetStep.completed
-                      ? Icons.check_circle_rounded
-                      : _currentStep == _ResetStep.newPassword
-                          ? Icons.lock_open_rounded
-                          : _currentStep == _ResetStep.otpInput
-                              ? Icons.pin_rounded
-                              : Icons.lock_reset_rounded,
-                  color: _currentStep == _ResetStep.completed ? Colors.green : const Color(0xFFFF2D6F),
-                  size: 28,
+              Center(
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF0F5),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFFF2D6F).withValues(alpha: 0.15)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFF2D6F).withValues(alpha: 0.15),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    _currentStep == _ResetStep.completed
+                        ? Icons.check_circle_rounded
+                        : _currentStep == _ResetStep.newPassword
+                            ? Icons.lock_open_rounded
+                            : _currentStep == _ResetStep.otpInput
+                                ? Icons.pin_rounded
+                                : Icons.lock_reset_rounded,
+                    color: _currentStep == _ResetStep.completed ? Colors.green : const Color(0xFFFF2D6F),
+                    size: 30,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),

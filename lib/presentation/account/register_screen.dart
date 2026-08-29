@@ -124,14 +124,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF0F5),
-                  borderRadius: BorderRadius.circular(16),
+              Center(
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF0F5),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFF2D6F).withValues(alpha: 0.15),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.person_add_outlined, color: Color(0xFFFF2D6F), size: 30),
                 ),
-                child: const Icon(Icons.person_add_outlined, color: Color(0xFFFF2D6F), size: 26),
               ),
               const SizedBox(height: 20),
               const Text(
