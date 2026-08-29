@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -284,86 +283,72 @@ class MainShell extends StatelessWidget {
     ];
 
     final cartBadgeCount = homeProvider.cart.fold<int>(0, (sum, i) => sum + i.quantity);
-    final bottomInset = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
-      extendBody: true,
       body: screens[homeProvider.selectedIndex],
-      bottomNavigationBar: SafeArea(
-        top: false,
-        bottom: true,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(16, 0, 16, bottomInset > 0 ? 4 : 12),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(32),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Container(
-                height: 64,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.94),
-                  borderRadius: BorderRadius.circular(32),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.85),
-                    width: 1.2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
-                    ),
-                    BoxShadow(
-                      color: const Color(0xFFFF2D6F).withValues(alpha: 0.06),
-                      blurRadius: 16,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+          border: Border(
+            top: BorderSide(
+              color: Colors.grey.withValues(alpha: 0.15),
+              width: 1,
+            ),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 18,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                NavBarItem(
+                  activeIcon: Icons.home_rounded,
+                  inactiveIcon: Icons.home_outlined,
+                  label: 'Home',
+                  isSelected: homeProvider.selectedIndex == 0,
+                  onTap: () => context.read<HomeProvider>().setSelectedIndex(0),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    NavBarItem(
-                      activeIcon: Icons.home_rounded,
-                      inactiveIcon: Icons.home_outlined,
-                      label: 'Home',
-                      isSelected: homeProvider.selectedIndex == 0,
-                      onTap: () => context.read<HomeProvider>().setSelectedIndex(0),
-                    ),
-                    NavBarItem(
-                      activeIcon: Icons.search_rounded,
-                      inactiveIcon: Icons.search_outlined,
-                      label: 'Explore',
-                      isSelected: homeProvider.selectedIndex == 1,
-                      onTap: () => context.read<HomeProvider>().setSelectedIndex(1),
-                    ),
-                    NavBarItem(
-                      activeIcon: Icons.shopping_bag_rounded,
-                      inactiveIcon: Icons.shopping_bag_outlined,
-                      label: 'Cart',
-                      isSelected: homeProvider.selectedIndex == 2,
-                      badgeCount: cartBadgeCount,
-                      onTap: () => context.read<HomeProvider>().setSelectedIndex(2),
-                    ),
-                    NavBarItem(
-                      activeIcon: Icons.favorite_rounded,
-                      inactiveIcon: Icons.favorite_outline_rounded,
-                      label: 'Saved',
-                      isSelected: homeProvider.selectedIndex == 3,
-                      badgeCount: homeProvider.favorites.length,
-                      onTap: () => context.read<HomeProvider>().setSelectedIndex(3),
-                    ),
-                    NavBarItem(
-                      activeIcon: Icons.person_rounded,
-                      inactiveIcon: Icons.person_outline_rounded,
-                      label: 'Profile',
-                      isSelected: homeProvider.selectedIndex == 4,
-                      onTap: () => context.read<HomeProvider>().setSelectedIndex(4),
-                    ),
-                  ],
+                NavBarItem(
+                  activeIcon: Icons.search_rounded,
+                  inactiveIcon: Icons.search_outlined,
+                  label: 'Explore',
+                  isSelected: homeProvider.selectedIndex == 1,
+                  onTap: () => context.read<HomeProvider>().setSelectedIndex(1),
                 ),
-              ),
+                NavBarItem(
+                  activeIcon: Icons.shopping_bag_rounded,
+                  inactiveIcon: Icons.shopping_bag_outlined,
+                  label: 'Cart',
+                  isSelected: homeProvider.selectedIndex == 2,
+                  badgeCount: cartBadgeCount,
+                  onTap: () => context.read<HomeProvider>().setSelectedIndex(2),
+                ),
+                NavBarItem(
+                  activeIcon: Icons.favorite_rounded,
+                  inactiveIcon: Icons.favorite_outline_rounded,
+                  label: 'Saved',
+                  isSelected: homeProvider.selectedIndex == 3,
+                  badgeCount: homeProvider.favorites.length,
+                  onTap: () => context.read<HomeProvider>().setSelectedIndex(3),
+                ),
+                NavBarItem(
+                  activeIcon: Icons.person_rounded,
+                  inactiveIcon: Icons.person_outline_rounded,
+                  label: 'Profile',
+                  isSelected: homeProvider.selectedIndex == 4,
+                  onTap: () => context.read<HomeProvider>().setSelectedIndex(4),
+                ),
+              ],
             ),
           ),
         ),
