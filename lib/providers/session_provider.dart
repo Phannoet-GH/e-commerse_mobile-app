@@ -249,6 +249,9 @@ class SessionProvider extends ChangeNotifier {
     _showAuth = false;
     _showRegister = false;
     _showForgotPassword = false;
+    _userName = '';
+    _userEmail = '';
+    _userPhone = '';
     await _storage.setSignedIn(false);
     await _storage.clearGuestData();
     notifyListeners();
