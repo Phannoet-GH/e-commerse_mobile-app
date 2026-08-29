@@ -129,13 +129,15 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     _bannerTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
-      if (!mounted || !_bannerController.hasClients) return;
+      if (!mounted || !_bannerController.hasClients || !_bannerController.position.haveDimensions) return;
       final nextIndex = (_currentBannerIndex + 1) % 5;
-      _bannerController.animateToPage(
-        nextIndex,
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.easeInOutCubic,
-      );
+      try {
+        _bannerController.animateToPage(
+          nextIndex,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOutCubic,
+        );
+      } catch (_) {}
     });
   }
 
@@ -558,6 +560,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                           const SizedBox(height: 8),
                                           Text(
                                             slide['title'] as String,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
                                             style: const TextStyle(
                                               color: Colors.white,
                                               fontSize: 24,

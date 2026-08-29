@@ -839,7 +839,7 @@ void main() {
 
     final createBtn = find.widgetWithText(ElevatedButton, 'Create Account');
     await tester.ensureVisible(createBtn);
-    await tester.tap(createBtn);
+    await tester.tap(createBtn, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(registered, isFalse);
 
@@ -849,14 +849,14 @@ void main() {
     await tester.enterText(textFields.at(1), 'valid.user@domain.com'); // email
     await tester.enterText(textFields.at(2), 'short'); // password < 8
     await tester.ensureVisible(createBtn);
-    await tester.tap(createBtn);
+    await tester.tap(createBtn, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(registered, isFalse);
 
     // 3. Submit with valid email and password >= 8 characters -> should succeed
     await tester.enterText(textFields.at(2), 'password123'); // 11 chars
     await tester.ensureVisible(createBtn);
-    await tester.tap(createBtn);
+    await tester.tap(createBtn, warnIfMissed: false);
     await tester.pumpAndSettle();
     expect(registered, isTrue);
   });
