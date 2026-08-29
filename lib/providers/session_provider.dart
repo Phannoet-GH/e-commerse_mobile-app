@@ -174,10 +174,14 @@ class SessionProvider extends ChangeNotifier {
     final cleanPassword = password.trim();
     final cleanName = name.trim().isNotEmpty ? name.trim() : cleanEmail.split('@').first;
 
+    if (cleanEmail.isEmpty || cleanPassword.isEmpty) {
+      return 'Email and password cannot be left blank.';
+    }
+
     // Check if user already exists in database
     final existingUser = _storage.findUserByEmail(cleanEmail);
     if (existingUser != null) {
-      return 'An account with this email is already registered.';
+      return 'An account with this email is already registered. Please sign in instead.';
     }
 
     // Register via backend API if available

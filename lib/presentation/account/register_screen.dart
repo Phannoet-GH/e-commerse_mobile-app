@@ -53,12 +53,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     // 2. Email Validation (@ symbol & format)
-    final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    final emailRegExp = RegExp(r'^[\w\.\+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,}$');
     if (!email.contains('@') || !emailRegExp.hasMatch(email)) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please enter a valid email address (e.g. user@domain.com).'),
           backgroundColor: Color(0xFF1E1E2F),
+          duration: Duration(seconds: 2),
         ),
       );
       return;
@@ -66,10 +68,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     // 3. Password Validation (At least 8 characters)
     if (password.length < 8) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Password must be at least 8 characters long.'),
           backgroundColor: Color(0xFF1E1E2F),
+          duration: Duration(seconds: 2),
         ),
       );
       return;
