@@ -101,7 +101,7 @@ void main() {
     expect(find.text('Welcome to LuxeCart'), findsOneWidget);
   });
 
-  testWidgets('first-time unsigned user sees onboarding',
+  testWidgets('first-time unsigned user sees onboarding after splash and marks opened upon continuing as guest',
       (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
 
@@ -118,8 +118,15 @@ void main() {
     expect(find.text('Sign In / Register'), findsOneWidget);
     expect(find.text('Continue as Guest'), findsOneWidget);
 
+    // Tap Continue as Guest
+    await tester.tap(find.text('Continue as Guest'));
+    await tester.pumpAndSettle();
+
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getBool(LocalStorageService.hasOpenedBeforeKey), isTrue);
+
+    // Now on HomeScreen
+    expect(find.text('Categories'), findsOneWidget);
   });
 
   testWidgets('returning unsigned user skips onboarding and shows home screen',

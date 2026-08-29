@@ -42,7 +42,6 @@ class SessionProvider extends ChangeNotifier {
 
     if (!_hasOpenedBefore && !_isSignedIn) {
       _showFirstLaunchOnboarding = true;
-      await _markOpened();
     }
 
     _isReady = true;
