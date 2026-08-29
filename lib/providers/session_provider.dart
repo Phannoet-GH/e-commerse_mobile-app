@@ -11,9 +11,8 @@ class SessionProvider extends ChangeNotifier {
   final LocalStorageService _storage;
 
   bool _isReady = false;
-  bool _hasOpenedBefore = false;
   bool _isSignedIn = false;
-  bool _showFirstLaunchOnboarding = false;
+  bool _isGuest = false;
   bool _showAuth = false;
   bool _showRegister = false;
   bool _showForgotPassword = false;
@@ -24,6 +23,7 @@ class SessionProvider extends ChangeNotifier {
 
   bool get isReady => _isReady;
   bool get isSignedIn => _isSignedIn;
+  bool get isGuest => _isGuest;
   bool get showAuth => _showAuth;
   bool get showRegister => _showRegister;
   bool get showForgotPassword => _showForgotPassword;
@@ -31,60 +31,49 @@ class SessionProvider extends ChangeNotifier {
   String get userEmail => _userEmail;
   String get userPhone => _userPhone;
 
+  /// True when unauthenticated, not an active guest session, and not in auth screens.
   bool get showOnboarding =>
-      _isReady && _showFirstLaunchOnboarding && !_isSignedIn && !_showAuth && !_showForgotPassword;
+      _isReady && !_isSignedIn && !_isGuest && !_showAuth && !_showForgotPassword;
 
   Future<void> load() async {
     await _storage.init();
-    _hasOpenedBefore = _storage.hasOpenedBefore;
     _isSignedIn = _storage.isSignedIn;
     _userName = _storage.userName;
     _userEmail = _storage.userEmail;
     _userPhone = _storage.userPhone;
-
-    if (!_hasOpenedBefore && !_isSignedIn) {
-      _showFirstLaunchOnboarding = true;
-    }
+    _isGuest = false;
 
     _isReady = true;
     notifyListeners();
   }
 
-  Future<void> _markOpened() async {
-    _hasOpenedBefore = true;
-    await _storage.setHasOpenedBefore(true);
-  }
-
-  Future<void> resetOnboarding() async {
-    _hasOpenedBefore = false;
-    _showFirstLaunchOnboarding = true;
+  Future<void> continueAsGuest() async {
+    _isGuest = true;
     _showAuth = false;
     _showRegister = false;
     _showForgotPassword = false;
-    await _storage.setHasOpenedBefore(false);
     notifyListeners();
   }
 
   void showAppTour() {
-    _showFirstLaunchOnboarding = true;
+    _isGuest = false;
     _showAuth = false;
     _showRegister = false;
     _showForgotPassword = false;
     notifyListeners();
   }
 
-  Future<void> continueAsGuest() async {
-    await _markOpened();
-    _showFirstLaunchOnboarding = false;
+  Future<void> resetOnboarding() async {
+    _isSignedIn = false;
+    _isGuest = false;
     _showAuth = false;
     _showRegister = false;
     _showForgotPassword = false;
+    await _storage.setSignedIn(false);
     notifyListeners();
   }
 
   Future<void> openSignIn() async {
-    await _markOpened();
-    _showFirstLaunchOnboarding = false;
     _showAuth = true;
     _showRegister = false;
     _showForgotPassword = false;
@@ -113,8 +102,8 @@ class SessionProvider extends ChangeNotifier {
   }
 
   Future<void> completeSignIn({String? email, String? name}) async {
-    await _markOpened();
     _isSignedIn = true;
+    _isGuest = false;
     _showAuth = false;
     _showRegister = false;
     _showForgotPassword = false;
@@ -162,7 +151,8 @@ class SessionProvider extends ChangeNotifier {
 
   Future<void> signOut() async {
     _isSignedIn = false;
-    _showAuth = true;
+    _isGuest = false;
+    _showAuth = false;
     _showRegister = false;
     _showForgotPassword = false;
     await _storage.setSignedIn(false);

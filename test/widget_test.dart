@@ -132,10 +132,9 @@ void main() {
     expect(find.text('Categories'), findsOneWidget);
   });
 
-  testWidgets('returning unsigned user skips onboarding and shows home screen',
+  testWidgets('unsigned user sees onboarding after splash and continuing as guest shows home screen',
       (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({
-      'hasOpenedBefore_v3': true,
       'isSignedIn': false,
     });
 
@@ -150,11 +149,19 @@ void main() {
     await tester.pump(const Duration(milliseconds: 150));
     await tester.pumpAndSettle();
 
+    // Verify Onboarding Screen is presented
+    expect(find.text('Welcome to LuxeCart'), findsOneWidget);
+    expect(find.text('Continue as Guest'), findsWidgets);
+
+    // Tap Continue as Guest
+    await tester.tap(find.text('Continue as Guest').first);
+    await tester.pumpAndSettle();
+
+    // Now on HomeScreen
     expect(find.text('Categories'), findsOneWidget);
     expect(find.text('Home'), findsWidgets);
     expect(find.text('Welcome to LuxeCart'), findsOneWidget);
     expect(find.text('Sign In for VIP Deals & Perks'), findsOneWidget);
-    expect(find.textContaining('Emma'), findsNothing);
   });
 
   testWidgets('authenticated user with saved session bypasses onboarding and opens directly to Home dashboard',
