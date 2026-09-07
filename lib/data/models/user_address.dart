@@ -50,14 +50,14 @@ class UserAddress {
   factory UserAddress.fromJson(Map<String, dynamic> json) {
     return UserAddress(
       id: json['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      recipientName: json['recipientName']?.toString() ?? 'Guest Shopper',
+      recipientName: json['recipient_name']?.toString() ?? json['recipientName']?.toString() ?? 'Guest Shopper',
       street: json['street']?.toString() ?? '14 Market Street',
       city: json['city']?.toString() ?? 'New York',
       state: json['state']?.toString() ?? 'NY',
-      zipCode: json['zipCode']?.toString() ?? '10001',
+      zipCode: json['zip_code']?.toString() ?? json['zipCode']?.toString() ?? '10001',
       country: json['country']?.toString() ?? 'United States',
       phone: json['phone']?.toString() ?? '+1 (555) 234-5678',
-      isDefault: json['isDefault'] as bool? ?? false,
+      isDefault: json['is_default'] == true || json['is_default'] == 1 || json['isDefault'] == true,
     );
   }
 

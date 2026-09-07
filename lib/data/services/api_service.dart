@@ -5,7 +5,10 @@ import 'package:http/http.dart' as http;
 
 import '../mock/mock_products.dart';
 import '../models/category_item.dart';
+import '../models/order.dart';
 import '../models/product.dart';
+import '../models/user_address.dart';
+import '../models/wishlist_board.dart';
 
 class ApiService {
   /// Automatic base URL detection for Android Emulator (10.0.2.2) vs Desktop/iOS/Web (localhost)
@@ -281,5 +284,254 @@ class ApiService {
     } catch (_) {
       return false;
     }
+  }
+
+  /// POST /api/auth/profile
+  Future<Map<String, dynamic>?> updateUserProfile({
+    required String email,
+    required String name,
+    String? phone,
+  }) async {
+    try {
+      final response = await _client
+          .post(
+            Uri.parse('$baseUrl/auth/profile'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'email': email,
+              'name': name,
+              'phone': ?phone,
+            }),
+          )
+          .timeout(const Duration(seconds: 3));
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map && decoded['data'] is Map) {
+          return decoded['data'] as Map<String, dynamic>;
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// GET /api/orders
+  Future<List<Order>> getOrders({String? userId}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/orders').replace(
+        queryParameters: {if (userId != null && userId.isNotEmpty) 'user_id': userId},
+      );
+      final response = await _client.get(uri).timeout(const Duration(seconds: 3));
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map && decoded['data'] is List) {
+          return (decoded['data'] as List)
+              .map((item) => Order.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  /// GET /api/addresses
+  Future<List<UserAddress>> getAddresses({String? userId}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/addresses').replace(
+        queryParameters: {if (userId != null && userId.isNotEmpty) 'user_id': userId},
+      );
+      final response = await _client.get(uri).timeout(const Duration(seconds: 3));
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map && decoded['data'] is List) {
+          return (decoded['data'] as List)
+              .map((item) => UserAddress.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  /// POST /api/addresses
+  Future<UserAddress?> addAddress(Map<String, dynamic> addressPayload) async {
+    try {
+      final response = await _client
+          .post(
+            Uri.parse('$baseUrl/addresses'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(addressPayload),
+          )
+          .timeout(const Duration(seconds: 3));
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map && decoded['data'] is Map) {
+          return UserAddress.fromJson(decoded['data'] as Map<String, dynamic>);
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// DELETE /api/addresses
+  Future<bool> deleteAddress(String addressId, {String? userId}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/addresses').replace(
+        queryParameters: {
+          'id': addressId,
+          if (userId != null && userId.isNotEmpty) 'user_id': userId,
+        },
+      );
+      final response = await _client.delete(uri).timeout(const Duration(seconds: 3));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// POST /api/addresses/default
+  Future<bool> setDefaultAddress(String addressId, {required String userId}) async {
+    try {
+      final response = await _client
+          .post(
+            Uri.parse('$baseUrl/addresses/default'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'id': addressId, 'user_id': userId}),
+          )
+          .timeout(const Duration(seconds: 3));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// GET /api/wishlists
+  Future<List<WishlistBoard>> getWishlists({String? userId}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/wishlists').replace(
+        queryParameters: {if (userId != null && userId.isNotEmpty) 'user_id': userId},
+      );
+      final response = await _client.get(uri).timeout(const Duration(seconds: 3));
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map && decoded['data'] is List) {
+          return (decoded['data'] as List)
+              .map((item) => WishlistBoard.fromJson(item as Map<String, dynamic>))
+              .toList();
+        }
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  /// POST /api/wishlists
+  Future<WishlistBoard?> createWishlist(Map<String, dynamic> wishlistPayload) async {
+    try {
+      final response = await _client
+          .post(
+            Uri.parse('$baseUrl/wishlists'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(wishlistPayload),
+          )
+          .timeout(const Duration(seconds: 3));
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map && decoded['data'] is Map) {
+          return WishlistBoard.fromJson(decoded['data'] as Map<String, dynamic>);
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// DELETE /api/wishlists
+  Future<bool> deleteWishlist(String wishlistId, {String? userId}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/wishlists').replace(
+        queryParameters: {
+          'id': wishlistId,
+          if (userId != null && userId.isNotEmpty) 'user_id': userId,
+        },
+      );
+      final response = await _client.delete(uri).timeout(const Duration(seconds: 3));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// POST /api/wishlists/items
+  Future<bool> addWishlistItem(String wishlistId, int productId) async {
+    try {
+      final response = await _client
+          .post(
+            Uri.parse('$baseUrl/wishlists/items'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'wishlist_id': wishlistId, 'product_id': productId}),
+          )
+          .timeout(const Duration(seconds: 3));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// DELETE /api/wishlists/items
+  Future<bool> removeWishlistItem(String wishlistId, int productId) async {
+    try {
+      final uri = Uri.parse('$baseUrl/wishlists/items').replace(
+        queryParameters: {'wishlist_id': wishlistId, 'product_id': productId.toString()},
+      );
+      final response = await _client.delete(uri).timeout(const Duration(seconds: 3));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// GET /api/favorites
+  Future<Set<int>> getFavorites({String? userId}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/favorites').replace(
+        queryParameters: {if (userId != null && userId.isNotEmpty) 'user_id': userId},
+      );
+      final response = await _client.get(uri).timeout(const Duration(seconds: 3));
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map && decoded['data'] is List) {
+          return (decoded['data'] as List)
+              .map((e) => (e as num).toInt())
+              .where((id) => id > 0)
+              .toSet();
+        }
+      }
+    } catch (_) {}
+    return {};
+  }
+
+  /// POST /api/favorites/toggle
+  Future<bool?> toggleFavorite({required int productId, String? userId}) async {
+    try {
+      final response = await _client
+          .post(
+            Uri.parse('$baseUrl/favorites/toggle'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'product_id': productId,
+              'user_id': userId ?? 'guest',
+            }),
+          )
+          .timeout(const Duration(seconds: 3));
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map && decoded['data'] is Map) {
+          return decoded['data']['is_favorite'] as bool?;
+        }
+      }
+    } catch (_) {}
+    return null;
   }
 }

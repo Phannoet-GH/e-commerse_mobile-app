@@ -15,6 +15,24 @@ $tests = [
     ['Validate Coupon (LUXE20)', 'POST', '/api/coupons/validate', ['code' => 'LUXE20', 'subtotal' => 100.0]],
     ['Validate Coupon (SAVE10)', 'POST', '/api/coupons/validate', ['code' => 'SAVE10', 'subtotal' => 60.0]],
     ['Get Reviews for Product #1', 'GET', '/api/reviews?product_id=1', null],
+    ['Get Addresses for User', 'GET', '/api/addresses?user_id=emma.wills@example.com', null],
+    ['Add New Address', 'POST', '/api/addresses', [
+        'user_id' => 'emma.wills@example.com',
+        'recipient_name' => 'Emma Wills',
+        'street' => '14 Market Street',
+        'city' => 'New York',
+        'state' => 'NY',
+        'zip_code' => '10001',
+        'is_default' => 1
+    ]],
+    ['Get Wishlists for User', 'GET', '/api/wishlists?user_id=emma.wills@example.com', null],
+    ['Toggle Favorite Item', 'POST', '/api/favorites/toggle', ['user_id' => 'emma.wills@example.com', 'product_id' => 1]],
+    ['Update User Profile', 'POST', '/api/auth/profile', [
+        'email' => 'emma.wills@example.com',
+        'name' => 'Emma Wills',
+        'phone' => '+1 (555) 234-5678'
+    ]],
+    ['Get User Orders', 'GET', '/api/orders?user_id=emma.wills@example.com', null],
 ];
 
 $passCount = 0;

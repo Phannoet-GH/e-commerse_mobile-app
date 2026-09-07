@@ -50,19 +50,22 @@ class WishlistBoard {
   }
 
   factory WishlistBoard.fromJson(Map<String, dynamic> json) {
+    final rawIds = json['product_ids'] ?? json['productIds'];
     return WishlistBoard(
       id: json['id'] as String? ?? 'w_${DateTime.now().millisecondsSinceEpoch}',
       name: json['name'] as String? ?? 'My Wishlist',
       description: json['description'] as String? ?? '',
-      icon: json['icon'] as String? ?? '📋',
-      productIds: (json['productIds'] as List<dynamic>?)
+      icon: json['icon'] as String? ?? '✨',
+      productIds: (rawIds as List<dynamic>?)
               ?.map((e) => (e as num).toInt())
               .toList() ??
           [],
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'] as String) ?? DateTime.now()
-          : DateTime.now(),
-      isDefault: json['isDefault'] as bool? ?? false,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
+          : (json['createdAt'] != null
+              ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
+              : DateTime.now()),
+      isDefault: json['is_default'] == true || json['is_default'] == 1 || json['isDefault'] == true,
     );
   }
 }

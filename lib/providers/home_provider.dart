@@ -6,18 +6,24 @@ import '../data/models/order.dart';
 import '../data/models/product.dart';
 import '../data/models/user_address.dart';
 import '../data/models/wishlist_board.dart';
+import '../data/services/api_service.dart';
 import '../data/services/local_storage_service.dart';
 import '../data/services/product_service.dart';
 
 class HomeProvider extends ChangeNotifier {
-  HomeProvider({LocalStorageService? storage, ProductService? productService})
-      : _storage = storage ?? LocalStorageService(),
-        _productService = productService ?? ProductService() {
+  HomeProvider({
+    LocalStorageService? storage,
+    ProductService? productService,
+    ApiService? apiService,
+  })  : _storage = storage ?? LocalStorageService(),
+        _productService = productService ?? ProductService(),
+        _apiService = apiService ?? ApiService() {
     _initStorage();
   }
 
   final LocalStorageService _storage;
   final ProductService _productService;
+  final ApiService _apiService;
 
   String? _currentUserId;
 
@@ -104,6 +110,36 @@ class HomeProvider extends ChangeNotifier {
     _promoDiscountPercent = 0.0;
     _promoDiscountFlat = 0.0;
     notifyListeners();
+
+    _syncWithBackend();
+  }
+
+  Future<void> _syncWithBackend() async {
+    try {
+      final apiAddresses = await _apiService.getAddresses(userId: _currentUserId);
+      if (apiAddresses.isNotEmpty) {
+        _addresses = apiAddresses;
+        notifyListeners();
+      }
+
+      final apiOrders = await _apiService.getOrders(userId: _currentUserId);
+      if (apiOrders.isNotEmpty) {
+        _orders = apiOrders;
+        notifyListeners();
+      }
+
+      final apiWishlists = await _apiService.getWishlists(userId: _currentUserId);
+      if (apiWishlists.isNotEmpty) {
+        _wishlists = apiWishlists;
+        notifyListeners();
+      }
+
+      final apiFavorites = await _apiService.getFavorites(userId: _currentUserId);
+      if (apiFavorites.isNotEmpty) {
+        _favorites = apiFavorites;
+        notifyListeners();
+      }
+    } catch (_) {}
   }
 
   // --- Navigation & Product Selection ---
@@ -132,6 +168,7 @@ class HomeProvider extends ChangeNotifier {
       _favorites.add(productId);
     }
     _storage.saveFavorites(_favorites, userId: _currentUserId);
+    _apiService.toggleFavorite(productId: productId, userId: _currentUserId);
     notifyListeners();
   }
 
@@ -153,6 +190,14 @@ class HomeProvider extends ChangeNotifier {
     );
     _wishlists.add(board);
     _storage.saveWishlists(_wishlists, userId: _currentUserId);
+    _apiService.createWishlist({
+      'id': board.id,
+      'user_id': _currentUserId ?? 'guest',
+      'name': board.name,
+      'description': board.description,
+      'icon': board.icon,
+      'product_ids': board.productIds,
+    });
     notifyListeners();
     return board;
   }
@@ -165,6 +210,7 @@ class HomeProvider extends ChangeNotifier {
         final updatedIds = List<int>.from(board.productIds)..add(productId);
         _wishlists[index] = board.copyWith(productIds: updatedIds);
         _storage.saveWishlists(_wishlists, userId: _currentUserId);
+        _apiService.addWishlistItem(wishlistId, productId);
         notifyListeners();
       }
     }
@@ -177,6 +223,7 @@ class HomeProvider extends ChangeNotifier {
       final updatedIds = List<int>.from(board.productIds)..remove(productId);
       _wishlists[index] = board.copyWith(productIds: updatedIds);
       _storage.saveWishlists(_wishlists, userId: _currentUserId);
+      _apiService.removeWishlistItem(wishlistId, productId);
       notifyListeners();
     }
   }
@@ -184,6 +231,7 @@ class HomeProvider extends ChangeNotifier {
   void deleteWishlist(String wishlistId) {
     _wishlists.removeWhere((w) => w.id == wishlistId && !w.isDefault);
     _storage.saveWishlists(_wishlists, userId: _currentUserId);
+    _apiService.deleteWishlist(wishlistId, userId: _currentUserId);
     notifyListeners();
   }
 
@@ -363,6 +411,29 @@ class HomeProvider extends ChangeNotifier {
     _orders.insert(0, order);
     _storage.saveOrders(_orders, userId: _currentUserId);
 
+    // Sync to MySQL orders and order_items tables via PHP API
+    _apiService.placeOrder({
+      'id': order.id,
+      'order_number': order.orderNumber,
+      'user_id': _currentUserId ?? 'guest',
+      'shipping_address': order.shippingAddress,
+      'payment_method': order.paymentMethod,
+      'promo_code': order.promoCode,
+      'subtotal': order.subtotal,
+      'shipping_fee': order.shippingFee,
+      'discount_amount': order.discountAmount,
+      'total_amount': order.totalAmount,
+      'items': order.items.map((i) => {
+        'product_id': i.product.id,
+        'product_name': i.product.name,
+        'product_image': i.product.image,
+        'quantity': i.quantity,
+        'price': i.product.price,
+        'selected_size': i.size,
+        'selected_color': i.color,
+      }).toList(),
+    });
+
     // Create confirmation notification
     final notif = NotificationItem(
       id: 'notif_${DateTime.now().millisecondsSinceEpoch}',
@@ -397,6 +468,18 @@ class HomeProvider extends ChangeNotifier {
     }
     _addresses.add(address);
     _storage.saveAddresses(_addresses, userId: _currentUserId);
+    _apiService.addAddress({
+      'id': address.id,
+      'user_id': _currentUserId ?? 'guest',
+      'recipient_name': address.recipientName,
+      'street': address.street,
+      'city': address.city,
+      'state': address.state,
+      'zip_code': address.zipCode,
+      'country': address.country,
+      'phone': address.phone,
+      'is_default': address.isDefault,
+    });
     notifyListeners();
   }
 
@@ -408,6 +491,18 @@ class HomeProvider extends ChangeNotifier {
       }
       _addresses[index] = updated;
       _storage.saveAddresses(_addresses, userId: _currentUserId);
+      _apiService.addAddress({
+        'id': updated.id,
+        'user_id': _currentUserId ?? 'guest',
+        'recipient_name': updated.recipientName,
+        'street': updated.street,
+        'city': updated.city,
+        'state': updated.state,
+        'zip_code': updated.zipCode,
+        'country': updated.country,
+        'phone': updated.phone,
+        'is_default': updated.isDefault,
+      });
       notifyListeners();
     }
   }
@@ -418,12 +513,16 @@ class HomeProvider extends ChangeNotifier {
       _addresses[0] = _addresses[0].copyWith(isDefault: true);
     }
     _storage.saveAddresses(_addresses, userId: _currentUserId);
+    _apiService.deleteAddress(id, userId: _currentUserId);
     notifyListeners();
   }
 
   void setDefaultAddress(String id) {
     _addresses = _addresses.map((a) => a.copyWith(isDefault: a.id == id)).toList();
     _storage.saveAddresses(_addresses, userId: _currentUserId);
+    if (_currentUserId != null && _currentUserId!.isNotEmpty) {
+      _apiService.setDefaultAddress(id, userId: _currentUserId!);
+    }
     notifyListeners();
   }
 

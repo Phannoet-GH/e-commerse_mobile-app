@@ -240,6 +240,7 @@ class SessionProvider extends ChangeNotifier {
     _userEmail = email;
     if (phone != null && phone.isNotEmpty) _userPhone = phone;
     await _storage.setUserProfile(name: name, email: email, phone: phone);
+    await _apiService.updateUserProfile(email: email, name: name, phone: phone);
     notifyListeners();
   }
 

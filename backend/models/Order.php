@@ -112,9 +112,14 @@ class Order {
         return self::formatOrder($order);
     }
 
-    public static function getAll(): array {
+    public static function getAll(?string $userId = null): array {
         $pdo = Database::getConnection();
-        $stmt = $pdo->query("SELECT * FROM orders ORDER BY created_at DESC");
+        if ($userId !== null && $userId !== '') {
+            $stmt = $pdo->prepare("SELECT * FROM orders WHERE user_id = :user_id ORDER BY created_at DESC");
+            $stmt->execute([':user_id' => $userId]);
+        } else {
+            $stmt = $pdo->query("SELECT * FROM orders ORDER BY created_at DESC");
+        }
         $orders = $stmt->fetchAll();
 
         $result = [];

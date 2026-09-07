@@ -253,5 +253,30 @@ class User {
             'message' => "Password has been successfully updated with encryption.",
         ];
     }
+
+    public static function getById(string $id): ?array {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("SELECT id, name, email, phone, role, created_at FROM users WHERE id = :id LIMIT 1");
+        $stmt->execute([':id' => $id]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    public static function updateProfile(string $email, string $name, ?string $phone = null): array {
+        $user = self::findByEmail($email);
+        if (!$user) {
+            throw new \Exception("User not found.");
+        }
+
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("UPDATE users SET name = :name, phone = :phone WHERE id = :id");
+        $stmt->execute([
+            ':name' => $name,
+            ':phone' => $phone ?? ($user['phone'] ?? '+1 (555) 000-0000'),
+            ':id' => $user['id'],
+        ]);
+
+        return self::getById($user['id']);
+    }
 }
 

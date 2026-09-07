@@ -13,6 +13,8 @@ require_once __DIR__ . '/models/User.php';
 require_once __DIR__ . '/models/Order.php';
 require_once __DIR__ . '/models/Review.php';
 require_once __DIR__ . '/models/Coupon.php';
+require_once __DIR__ . '/models/Address.php';
+require_once __DIR__ . '/models/Wishlist.php';
 
 use App\Config\Cors;
 use App\Helpers\Response;
@@ -25,6 +27,8 @@ use App\Models\User;
 use App\Models\Order;
 use App\Models\Review;
 use App\Models\Coupon;
+use App\Models\Address;
+use App\Models\Wishlist;
 
 // Apply Security Headers & CORS
 SecurityHeaders::apply();
@@ -216,12 +220,29 @@ try {
         }
     }
 
+    if ($path === 'auth/profile') {
+        if ($method === 'POST' || $method === 'PUT') {
+            $input = Response::getJsonInput();
+            $email = Sanitizer::cleanString($input['email'] ?? '', 150);
+            $name = Sanitizer::cleanString($input['name'] ?? '', 100);
+            $phone = isset($input['phone']) ? Sanitizer::cleanString($input['phone'], 50) : null;
+
+            if (empty($email) || empty($name)) {
+                Response::error('Email and name are required.', 422);
+            }
+
+            $user = User::updateProfile($email, $name, $phone);
+            Response::json($user, 200);
+        }
+    }
+
     // -------------------------------------------------------------
     // ORDERS API (State-changing: Sanitized & CSRF-protected)
     // -------------------------------------------------------------
     if ($path === 'orders') {
         if ($method === 'GET') {
-            $orders = Order::getAll();
+            $userId = isset($_GET['user_id']) ? Sanitizer::cleanString($_GET['user_id'], 60) : null;
+            $orders = Order::getAll($userId);
             Response::json($orders);
         } elseif ($method === 'POST') {
             $input = Response::getJsonInput();
@@ -244,6 +265,174 @@ try {
 
             $order = Order::create($cleanPayload);
             Response::json($order, 201);
+        }
+    }
+
+    // -------------------------------------------------------------
+    // ADDRESSES API
+    // -------------------------------------------------------------
+    if ($path === 'addresses') {
+        if ($method === 'GET') {
+            $userId = isset($_GET['user_id']) ? Sanitizer::cleanString($_GET['user_id'], 60) : 'guest';
+            $addresses = Address::getByUserId($userId);
+            Response::json($addresses);
+        } elseif ($method === 'POST') {
+            $input = Response::getJsonInput();
+            $address = Address::create([
+                'id' => isset($input['id']) ? Sanitizer::cleanString($input['id'], 60) : null,
+                'user_id' => Sanitizer::cleanString($input['user_id'] ?? 'guest', 60),
+                'recipient_name' => Sanitizer::cleanString($input['recipient_name'] ?? 'Emma Wills', 150),
+                'street' => Sanitizer::cleanString($input['street'] ?? '', 255),
+                'city' => Sanitizer::cleanString($input['city'] ?? '', 100),
+                'state' => Sanitizer::cleanString($input['state'] ?? '', 50),
+                'zip_code' => Sanitizer::cleanString($input['zip_code'] ?? '', 30),
+                'country' => Sanitizer::cleanString($input['country'] ?? 'United States', 100),
+                'phone' => Sanitizer::cleanString($input['phone'] ?? '+1 (555) 000-0000', 50),
+                'is_default' => !empty($input['is_default']),
+            ]);
+            Response::json($address, 201);
+        } elseif ($method === 'DELETE') {
+            $id = isset($_GET['id']) ? Sanitizer::cleanString($_GET['id'], 60) : '';
+            $userId = isset($_GET['user_id']) ? Sanitizer::cleanString($_GET['user_id'], 60) : null;
+            if (empty($id)) {
+                $input = Response::getJsonInput();
+                $id = Sanitizer::cleanString($input['id'] ?? '', 60);
+                $userId = isset($input['user_id']) ? Sanitizer::cleanString($input['user_id'], 60) : $userId;
+            }
+            if (empty($id)) {
+                Response::error('Address ID is required.', 400);
+            }
+            Address::delete($id, $userId);
+            Response::json(['success' => true, 'message' => 'Address deleted.'], 200);
+        }
+    }
+
+    if ($path === 'addresses/default') {
+        if ($method === 'POST' || $method === 'PUT') {
+            $input = Response::getJsonInput();
+            $id = Sanitizer::cleanString($input['id'] ?? '', 60);
+            $userId = Sanitizer::cleanString($input['user_id'] ?? 'guest', 60);
+            if (empty($id)) {
+                Response::error('Address ID is required.', 400);
+            }
+            Address::setDefault($id, $userId);
+            Response::json(['success' => true, 'message' => 'Default address updated.'], 200);
+        }
+    }
+
+    // -------------------------------------------------------------
+    // WISHLISTS & FAVORITES API
+    // -------------------------------------------------------------
+    if ($path === 'wishlists') {
+        if ($method === 'GET') {
+            $userId = isset($_GET['user_id']) ? Sanitizer::cleanString($_GET['user_id'], 60) : 'guest';
+            $wishlists = Wishlist::getByUserId($userId);
+            Response::json($wishlists);
+        } elseif ($method === 'POST') {
+            $input = Response::getJsonInput();
+            $wishlist = Wishlist::create([
+                'id' => isset($input['id']) ? Sanitizer::cleanString($input['id'], 60) : null,
+                'user_id' => Sanitizer::cleanString($input['user_id'] ?? 'guest', 60),
+                'name' => Sanitizer::cleanString($input['name'] ?? 'My Wishlist', 150),
+                'description' => Sanitizer::cleanString($input['description'] ?? '', 255),
+                'icon' => Sanitizer::cleanString($input['icon'] ?? '✨', 20),
+                'is_default' => !empty($input['is_default']),
+                'product_ids' => isset($input['product_ids']) && is_array($input['product_ids']) ? $input['product_ids'] : [],
+            ]);
+            Response::json($wishlist, 201);
+        } elseif ($method === 'DELETE') {
+            $id = isset($_GET['id']) ? Sanitizer::cleanString($_GET['id'], 60) : '';
+            $userId = isset($_GET['user_id']) ? Sanitizer::cleanString($_GET['user_id'], 60) : null;
+            if (empty($id)) {
+                $input = Response::getJsonInput();
+                $id = Sanitizer::cleanString($input['id'] ?? '', 60);
+                $userId = isset($input['user_id']) ? Sanitizer::cleanString($input['user_id'], 60) : $userId;
+            }
+            if (empty($id)) {
+                Response::error('Wishlist ID is required.', 400);
+            }
+            Wishlist::delete($id, $userId);
+            Response::json(['success' => true, 'message' => 'Wishlist deleted.'], 200);
+        }
+    }
+
+    if ($path === 'wishlists/items') {
+        if ($method === 'POST') {
+            $input = Response::getJsonInput();
+            $wishlistId = Sanitizer::cleanString($input['wishlist_id'] ?? '', 60);
+            $productId = Sanitizer::cleanInt($input['product_id'] ?? 0);
+            if (empty($wishlistId) || $productId <= 0) {
+                Response::error('Wishlist ID and valid Product ID are required.', 400);
+            }
+            Wishlist::addItem($wishlistId, $productId);
+            Response::json(['success' => true, 'message' => 'Item added to wishlist.'], 200);
+        } elseif ($method === 'DELETE') {
+            $wishlistId = isset($_GET['wishlist_id']) ? Sanitizer::cleanString($_GET['wishlist_id'], 60) : '';
+            $productId = isset($_GET['product_id']) ? Sanitizer::cleanInt($_GET['product_id']) : 0;
+            if (empty($wishlistId) || $productId <= 0) {
+                $input = Response::getJsonInput();
+                $wishlistId = Sanitizer::cleanString($input['wishlist_id'] ?? '', 60);
+                $productId = Sanitizer::cleanInt($input['product_id'] ?? 0);
+            }
+            if (empty($wishlistId) || $productId <= 0) {
+                Response::error('Wishlist ID and valid Product ID are required.', 400);
+            }
+            Wishlist::removeItem($wishlistId, $productId);
+            Response::json(['success' => true, 'message' => 'Item removed from wishlist.'], 200);
+        }
+    }
+
+    if ($path === 'favorites') {
+        if ($method === 'GET') {
+            $userId = isset($_GET['user_id']) ? Sanitizer::cleanString($_GET['user_id'], 60) : 'guest';
+            $wishlists = Wishlist::getByUserId($userId);
+            $favorites = [];
+            foreach ($wishlists as $w) {
+                if ($w['is_default'] || $w['name'] === 'Favorites' || $w['name'] === 'My Wishlist') {
+                    $favorites = $w['product_ids'];
+                    break;
+                }
+            }
+            Response::json($favorites);
+        }
+    }
+
+    if ($path === 'favorites/toggle') {
+        if ($method === 'POST') {
+            $input = Response::getJsonInput();
+            $userId = Sanitizer::cleanString($input['user_id'] ?? 'guest', 60);
+            $productId = Sanitizer::cleanInt($input['product_id'] ?? 0);
+            if ($productId <= 0) {
+                Response::error('Valid Product ID is required.', 400);
+            }
+
+            $wishlists = Wishlist::getByUserId($userId);
+            $targetWishlistId = null;
+            foreach ($wishlists as $w) {
+                if ($w['is_default'] || $w['name'] === 'Favorites' || $w['name'] === 'My Wishlist') {
+                    $targetWishlistId = $w['id'];
+                    $hasItem = in_array($productId, $w['product_ids']);
+                    break;
+                }
+            }
+
+            if (!$targetWishlistId) {
+                $newW = Wishlist::create([
+                    'user_id' => $userId,
+                    'name' => 'Favorites',
+                    'is_default' => 1,
+                    'product_ids' => [$productId],
+                ]);
+                Response::json(['success' => true, 'is_favorite' => true, 'product_id' => $productId], 200);
+            } else {
+                if (isset($hasItem) && $hasItem) {
+                    Wishlist::removeItem($targetWishlistId, $productId);
+                    Response::json(['success' => true, 'is_favorite' => false, 'product_id' => $productId], 200);
+                } else {
+                    Wishlist::addItem($targetWishlistId, $productId);
+                    Response::json(['success' => true, 'is_favorite' => true, 'product_id' => $productId], 200);
+                }
+            }
         }
     }
 
