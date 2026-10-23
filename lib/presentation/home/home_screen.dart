@@ -1038,31 +1038,154 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 // 6. Product Grid
                 if (widget.isLoading)
-                  const Padding(
-                    padding: EdgeInsets.all(40),
-                    child: Center(
-                      child: CircularProgressIndicator(color: Color(0xFFFF2D6F)),
-                    ),
-                  )
-                else if (widget.productsError != null && filtered.isEmpty)
                   Padding(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.symmetric(vertical: 48.0),
                     child: Center(
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.cloud_off_rounded, size: 48, color: Colors.grey),
-                          const SizedBox(height: 12),
+                          const SizedBox(
+                            width: 38,
+                            height: 38,
+                            child: CircularProgressIndicator(
+                              color: Color(0xFFFF2D6F),
+                              strokeWidth: 3,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                           Text(
-                            'Unable to load products.\n${widget.productsError}',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.red),
+                            'Connecting to backend API...',
+                            style: TextStyle(
+                              color: Colors.grey.shade800,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Fetching live catalog from http://localhost:8000',
+                            style: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 11,
+                            ),
                           ),
                         ],
                       ),
                     ),
                   )
-                else
-                  GridView.builder(
+                else ...[
+                  if (widget.productsError != null)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF4E5),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFFFD19A)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFFFE0B2),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.cloud_off_rounded,
+                              color: Color(0xFFE65100),
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Backend Offline • Showing Cached Catalog',
+                                  style: TextStyle(
+                                    color: Color(0xFFE65100),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Run "php artisan serve" on port 8000 to connect.',
+                                  style: TextStyle(
+                                    color: Colors.brown.shade800,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (widget.onRefresh != null)
+                            ElevatedButton(
+                              onPressed: widget.onRefresh,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFE65100),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: const Text(
+                                'Retry',
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  if (filtered.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(28),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey.shade400),
+                            const SizedBox(height: 12),
+                            Text(
+                              widget.productsError != null
+                                  ? 'Unable to load products.\n${widget.productsError}'
+                                  : 'No products found in this category.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w600),
+                            ),
+                            if (widget.onRefresh != null) ...[
+                              const SizedBox(height: 14),
+                              ElevatedButton.icon(
+                                onPressed: widget.onRefresh,
+                                icon: const Icon(Icons.refresh_rounded, size: 16),
+                                label: const Text('Retry Connection'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFFF2D6F),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: filtered.length,
@@ -1262,6 +1385,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
+                ],
               ],
             ),
           ),

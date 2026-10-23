@@ -25,6 +25,12 @@ class ApiService {
   final String baseUrl;
   final http.Client _client;
 
+  String? _lastError;
+  bool _isBackendConnected = false;
+
+  String? get lastError => _lastError;
+  bool get isBackendConnected => _isBackendConnected;
+
   ApiService({String? baseUrl, http.Client? client})
       : baseUrl = baseUrl ?? defaultBaseUrl,
         _client = client ?? http.Client();
@@ -48,11 +54,18 @@ class ApiService {
           final list = (decoded['data'] as List)
               .map((item) => Product.fromJson(item as Map<String, dynamic>))
               .toList();
-          if (list.isNotEmpty) return list;
+          if (list.isNotEmpty) {
+            _lastError = null;
+            _isBackendConnected = true;
+            return list;
+          }
         }
       }
-    } catch (_) {
-      // Offline fallback
+      _lastError = 'Backend returned status ${response.statusCode}';
+      _isBackendConnected = false;
+    } catch (e) {
+      _lastError = 'Cannot connect to backend server at $baseUrl';
+      _isBackendConnected = false;
     }
 
     // Fallback to local mock catalog
@@ -92,12 +105,22 @@ class ApiService {
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         if (decoded is Map && decoded['data'] is List) {
-          return (decoded['data'] as List)
+          final list = (decoded['data'] as List)
               .map((item) => CategoryItem.fromJson(item as Map<String, dynamic>))
               .toList();
+          if (list.isNotEmpty) {
+            _lastError = null;
+            _isBackendConnected = true;
+            return list;
+          }
         }
       }
-    } catch (_) {}
+      _lastError = 'Cannot connect to backend server at $baseUrl';
+      _isBackendConnected = false;
+    } catch (_) {
+      _lastError = 'Cannot connect to backend server at $baseUrl';
+      _isBackendConnected = false;
+    }
 
     return CategoryItem.defaultCategories;
   }

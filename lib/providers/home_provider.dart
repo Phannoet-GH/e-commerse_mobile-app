@@ -583,27 +583,48 @@ class HomeProvider extends ChangeNotifier {
     } catch (_) {}
   }
 
-  Future<void> loadAllData() async {
-    await Future.wait([
-      loadProducts(),
-      loadCategories(),
-      _syncWithBackend(),
-    ]);
-  }
-
-  Future<void> loadProducts({String? category, String? search}) async {
-    if (_isLoadingProducts && _products.length > MockData.products.length) return;
-
+  Future<void> loadAllData({Duration minDelay = Duration.zero}) async {
     _isLoadingProducts = true;
     _productsError = null;
     notifyListeners();
 
+    final delayFuture = minDelay > Duration.zero ? Future.delayed(minDelay) : null;
+
+    await Future.wait([
+      loadProducts(minDelay: minDelay),
+      loadCategories(),
+      _syncWithBackend(),
+      if (delayFuture != null) delayFuture,
+    ]);
+
+    _isLoadingProducts = false;
+    notifyListeners();
+  }
+
+  Future<void> loadProducts({
+    String? category,
+    String? search,
+    Duration minDelay = Duration.zero,
+  }) async {
+    _isLoadingProducts = true;
+    _productsError = null;
+    notifyListeners();
+
+    final delayFuture = minDelay > Duration.zero ? Future.delayed(minDelay) : null;
+
     try {
       final fetched = await _productService.fetchProducts(category: category, search: search);
+      if (delayFuture != null) await delayFuture;
+      if (_productService.lastError != null) {
+        _productsError = _productService.lastError;
+      } else {
+        _productsError = null;
+      }
       if (fetched.isNotEmpty) {
         _products = fetched;
       }
     } catch (e) {
+      if (delayFuture != null) await delayFuture;
       _productsError = e.toString();
     } finally {
       _isLoadingProducts = false;

@@ -14,6 +14,8 @@ class ExploreScreen extends StatefulWidget {
   final Function(String)? onSearchPerformed;
   final Function(String)? onRemoveSearchQuery;
   final bool isLoading;
+  final String? productsError;
+  final Future<void> Function()? onRefresh;
 
   const ExploreScreen({
     super.key,
@@ -25,6 +27,8 @@ class ExploreScreen extends StatefulWidget {
     this.onSearchPerformed,
     this.onRemoveSearchQuery,
     this.isLoading = false,
+    this.productsError,
+    this.onRefresh,
   });
 
   @override
@@ -598,13 +602,65 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     ),
                 ],
               ),
-              const SizedBox(height: 10),
+              if (widget.productsError != null)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF4E5),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFFFD19A)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.cloud_off_rounded, color: Color(0xFFE65100), size: 18),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          'Backend offline • Using cached catalog',
+                          style: TextStyle(
+                            color: Color(0xFFE65100),
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      if (widget.onRefresh != null)
+                        TextButton(
+                          onPressed: widget.onRefresh,
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'Retry',
+                            style: TextStyle(color: Color(0xFFE65100), fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
 
               // 5. Products Grid
               Expanded(
                 child: widget.isLoading && widget.products.isEmpty
-                    ? const Center(
-                        child: CircularProgressIndicator(color: Color(0xFFFF2D6F)),
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const CircularProgressIndicator(color: Color(0xFFFF2D6F)),
+                            const SizedBox(height: 14),
+                            Text(
+                              'Loading live catalog from API...',
+                              style: TextStyle(
+                                color: Colors.grey.shade700,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       )
                     : filteredProducts.isEmpty
                         ? Center(

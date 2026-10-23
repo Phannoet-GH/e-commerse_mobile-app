@@ -32,7 +32,10 @@ class _ECommerceAppState extends State<ECommerceApp> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        context.read<HomeProvider>().loadProducts();
+        final delay = widget.splashDuration != null
+            ? Duration.zero
+            : const Duration(milliseconds: 650);
+        context.read<HomeProvider>().loadProducts(minDelay: delay);
       }
     });
   }
