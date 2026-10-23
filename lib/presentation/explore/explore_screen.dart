@@ -13,6 +13,7 @@ class ExploreScreen extends StatefulWidget {
   final List<String>? searchHistory;
   final Function(String)? onSearchPerformed;
   final Function(String)? onRemoveSearchQuery;
+  final bool isLoading;
 
   const ExploreScreen({
     super.key,
@@ -23,6 +24,7 @@ class ExploreScreen extends StatefulWidget {
     this.searchHistory,
     this.onSearchPerformed,
     this.onRemoveSearchQuery,
+    this.isLoading = false,
   });
 
   @override
@@ -600,8 +602,12 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
               // 5. Products Grid
               Expanded(
-                child: filteredProducts.isEmpty
-                    ? Center(
+                child: widget.isLoading && widget.products.isEmpty
+                    ? const Center(
+                        child: CircularProgressIndicator(color: Color(0xFFFF2D6F)),
+                      )
+                    : filteredProducts.isEmpty
+                        ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [

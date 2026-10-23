@@ -20,6 +20,8 @@ class ApiService {
     return 'http://localhost:8000/api';
   }
 
+  static const Duration defaultTimeout = Duration(seconds: 10);
+
   final String baseUrl;
   final http.Client _client;
 
@@ -32,13 +34,14 @@ class ApiService {
     try {
       final uri = Uri.parse('$baseUrl/products').replace(
         queryParameters: {
+          'limit': '100',
           if (category != null && category.isNotEmpty && category.toLowerCase() != 'all')
             'category': category,
           if (search != null && search.isNotEmpty) 'search': search,
         },
       );
 
-      final response = await _client.get(uri).timeout(const Duration(seconds: 3));
+      final response = await _client.get(uri).timeout(defaultTimeout);
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         if (decoded is Map && decoded['data'] is List) {
@@ -68,10 +71,24 @@ class ApiService {
     return fallback;
   }
 
+  /// GET /api/products/$id
+  Future<Product?> getProductById(int id) async {
+    try {
+      final response = await _client.get(Uri.parse('$baseUrl/products/$id')).timeout(defaultTimeout);
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map && decoded['data'] is Map) {
+          return Product.fromJson(decoded['data'] as Map<String, dynamic>);
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
   /// GET /api/categories
   Future<List<CategoryItem>> getCategories() async {
     try {
-      final response = await _client.get(Uri.parse('$baseUrl/categories')).timeout(const Duration(seconds: 3));
+      final response = await _client.get(Uri.parse('$baseUrl/categories')).timeout(defaultTimeout);
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         if (decoded is Map && decoded['data'] is List) {
@@ -94,7 +111,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'email': email, 'password': password}),
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(defaultTimeout);
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -125,7 +142,7 @@ class ApiService {
               'phone': phone,
             }),
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(defaultTimeout);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -146,7 +163,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(orderPayload),
           )
-          .timeout(const Duration(seconds: 4));
+          .timeout(defaultTimeout);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -164,7 +181,7 @@ class ApiService {
       final uri = Uri.parse('$baseUrl/orders/track').replace(
         queryParameters: {'tracking_number': trackingNumber},
       );
-      final response = await _client.get(uri).timeout(const Duration(seconds: 3));
+      final response = await _client.get(uri).timeout(defaultTimeout);
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         if (decoded is Map && decoded['data'] is Map) {
@@ -184,7 +201,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'code': code, 'subtotal': subtotal}),
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(defaultTimeout);
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -215,7 +232,7 @@ class ApiService {
               'comment': comment,
             }),
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(defaultTimeout);
 
       return response.statusCode == 201 || response.statusCode == 200;
     } catch (_) {
@@ -232,7 +249,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'email': email}),
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(defaultTimeout);
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -253,7 +270,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'email': email, 'otp': otp}),
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(defaultTimeout);
 
       return response.statusCode == 200;
     } catch (_) {
@@ -278,7 +295,7 @@ class ApiService {
               'otp': ?otp,
             }),
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(defaultTimeout);
 
       return response.statusCode == 200;
     } catch (_) {
@@ -303,7 +320,7 @@ class ApiService {
               'phone': ?phone,
             }),
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(defaultTimeout);
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -321,7 +338,7 @@ class ApiService {
       final uri = Uri.parse('$baseUrl/orders').replace(
         queryParameters: {if (userId != null && userId.isNotEmpty) 'user_id': userId},
       );
-      final response = await _client.get(uri).timeout(const Duration(seconds: 3));
+      final response = await _client.get(uri).timeout(defaultTimeout);
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         if (decoded is Map && decoded['data'] is List) {
@@ -340,7 +357,7 @@ class ApiService {
       final uri = Uri.parse('$baseUrl/addresses').replace(
         queryParameters: {if (userId != null && userId.isNotEmpty) 'user_id': userId},
       );
-      final response = await _client.get(uri).timeout(const Duration(seconds: 3));
+      final response = await _client.get(uri).timeout(defaultTimeout);
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         if (decoded is Map && decoded['data'] is List) {
@@ -362,7 +379,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(addressPayload),
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(defaultTimeout);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -383,7 +400,7 @@ class ApiService {
           if (userId != null && userId.isNotEmpty) 'user_id': userId,
         },
       );
-      final response = await _client.delete(uri).timeout(const Duration(seconds: 3));
+      final response = await _client.delete(uri).timeout(defaultTimeout);
       return response.statusCode == 200;
     } catch (_) {
       return false;
@@ -399,7 +416,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'id': addressId, 'user_id': userId}),
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(defaultTimeout);
       return response.statusCode == 200;
     } catch (_) {
       return false;
@@ -412,7 +429,7 @@ class ApiService {
       final uri = Uri.parse('$baseUrl/wishlists').replace(
         queryParameters: {if (userId != null && userId.isNotEmpty) 'user_id': userId},
       );
-      final response = await _client.get(uri).timeout(const Duration(seconds: 3));
+      final response = await _client.get(uri).timeout(defaultTimeout);
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         if (decoded is Map && decoded['data'] is List) {
@@ -434,7 +451,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(wishlistPayload),
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(defaultTimeout);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -455,7 +472,7 @@ class ApiService {
           if (userId != null && userId.isNotEmpty) 'user_id': userId,
         },
       );
-      final response = await _client.delete(uri).timeout(const Duration(seconds: 3));
+      final response = await _client.delete(uri).timeout(defaultTimeout);
       return response.statusCode == 200;
     } catch (_) {
       return false;
@@ -471,7 +488,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'wishlist_id': wishlistId, 'product_id': productId}),
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(defaultTimeout);
       return response.statusCode == 200;
     } catch (_) {
       return false;
@@ -484,7 +501,7 @@ class ApiService {
       final uri = Uri.parse('$baseUrl/wishlists/items').replace(
         queryParameters: {'wishlist_id': wishlistId, 'product_id': productId.toString()},
       );
-      final response = await _client.delete(uri).timeout(const Duration(seconds: 3));
+      final response = await _client.delete(uri).timeout(defaultTimeout);
       return response.statusCode == 200;
     } catch (_) {
       return false;
@@ -497,7 +514,7 @@ class ApiService {
       final uri = Uri.parse('$baseUrl/favorites').replace(
         queryParameters: {if (userId != null && userId.isNotEmpty) 'user_id': userId},
       );
-      final response = await _client.get(uri).timeout(const Duration(seconds: 3));
+      final response = await _client.get(uri).timeout(defaultTimeout);
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         if (decoded is Map && decoded['data'] is List) {
@@ -523,7 +540,7 @@ class ApiService {
               'user_id': userId ?? 'guest',
             }),
           )
-          .timeout(const Duration(seconds: 3));
+          .timeout(defaultTimeout);
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);

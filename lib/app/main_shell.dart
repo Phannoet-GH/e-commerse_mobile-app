@@ -222,10 +222,11 @@ class MainShell extends StatelessWidget {
         productsError: homeProvider.productsError,
         favorites: homeProvider.favorites,
         onFavoriteToggle: (id) => context.read<HomeProvider>().toggleFavorite(id),
-        onRefresh: () => context.read<HomeProvider>().loadProducts(),
+        onRefresh: () => context.read<HomeProvider>().loadAllData(),
       ),
       ExploreScreen(
         products: homeProvider.products,
+        isLoading: homeProvider.isLoadingProducts,
         onProductTap: (product) => context.read<HomeProvider>().selectProduct(product),
         onFavoriteToggle: (id) => context.read<HomeProvider>().toggleFavorite(id),
         favorites: homeProvider.favorites,

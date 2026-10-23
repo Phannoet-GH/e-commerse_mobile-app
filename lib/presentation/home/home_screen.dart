@@ -153,6 +153,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<String> _getCategories() {
     final categories = {'All'};
+    try {
+      final homeProv = context.read<HomeProvider>();
+      for (final cat in homeProv.categories) {
+        if (cat.name.trim().isNotEmpty && cat.name.trim() != 'All') {
+          categories.add(cat.name.trim());
+        }
+      }
+    } catch (_) {}
     for (final product in widget.products) {
       categories.add(product.category);
     }

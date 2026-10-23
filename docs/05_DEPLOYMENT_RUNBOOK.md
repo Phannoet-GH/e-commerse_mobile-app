@@ -92,22 +92,29 @@ curl http://localhost:8000/api/health
 
 ### Step 4: Run Automated Backend & Security Test Suites
 
-The backend includes two automated diagnostic suites:
+The backend includes three automated diagnostic suites:
 
-#### 1. All Endpoints Diagnostic (10/10 Verification)
+#### 1. All Endpoints Diagnostic (16/16 Verification)
 ```bash
-php backend/test_all_endpoints.php
+php test_all_endpoints.php
 ```
-**Expected Result**: All 10 core endpoints respond with `200 OK` / `201 Created`.
+**Expected Result**: All 16 endpoints respond with `200 OK` / `201 Created`.
 
 #### 2. Enterprise Security Test Suite (SQLi, CSRF, XSS)
 ```bash
-php backend/test_security.php
+php test_security.php
 ```
 **Expected Result**:
 - `[PASS]` CSRF Protection: Rejects state modifications lacking `X-CSRF-Token`.
 - `[PASS]` SQL Injection: Blocked via PDO prepared statements.
 - `[PASS]` XSS Mitigation: Malicious HTML entities neutralized.
+
+#### 3. Scramble & Fuzz Testing Suite (24/24 Resilience & Boundary Verification)
+```bash
+php test_scramble_api.php
+```
+**Expected Result**:
+- `[PASS]` 24/24 mutated payloads, malformed JSON, corrupted types, buffer overflows, and boundary values repelled gracefully without uncaught 500 errors.
 
 ---
 

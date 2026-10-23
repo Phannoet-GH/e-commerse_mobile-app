@@ -15,11 +15,16 @@ class Review {
 
   factory Review.fromJson(Map<String, dynamic> json) {
     return Review(
-      userName: json['userName']?.toString() ?? 'Anonymous',
+      userName: json['userName']?.toString() ??
+          json['user_name']?.toString() ??
+          'Anonymous',
       rating: (json['rating'] as num?)?.toDouble() ?? 5.0,
       comment: json['comment']?.toString() ?? '',
-      date: json['date']?.toString() ?? 'Recently',
-      avatarUrl: json['avatarUrl']?.toString(),
+      date: json['date']?.toString() ??
+          (json['created_at'] != null
+              ? json['created_at'].toString().split('T').first
+              : 'Recently'),
+      avatarUrl: json['avatarUrl']?.toString() ?? json['avatar_url']?.toString(),
     );
   }
 
@@ -77,34 +82,43 @@ class Product {
         customerReviews = customerReviews ?? const [];
 
   factory Product.fromJson(Map<String, dynamic> json) {
-    final rawImages = json['images'] as List<dynamic>?;
+    final rawImages = (json['images'] ?? json['image_urls']) as List<dynamic>?;
     final imageList = rawImages?.map((e) => e.toString()).toList();
     final primaryImage = json['image']?.toString() ??
+        json['image_url']?.toString() ??
         (imageList != null && imageList.isNotEmpty ? imageList.first : '');
 
     final rawColors = json['colors'] as List<dynamic>?;
     final colorList = rawColors?.map((e) => e.toString()).toList();
 
-    final rawReviews = json['customerReviews'] as List<dynamic>?;
+    final rawReviews = (json['customerReviews'] ??
+        json['customer_reviews'] ??
+        json['reviews_list']) as List<dynamic>?;
     final reviewsList = rawReviews
         ?.map((e) => Review.fromJson(e as Map<String, dynamic>))
         .toList();
 
-    final rawSpecs = json['specs'] as Map<String, dynamic>?;
-    final specsMap = rawSpecs?.map((k, v) => MapEntry(k, v.toString()));
+    Map<String, String>? specsMap;
+    final rawSpecs = json['specs'];
+    if (rawSpecs is Map) {
+      specsMap = rawSpecs.map((k, v) => MapEntry(k.toString(), v.toString()));
+    }
 
     return Product(
       id: (json['id'] as num?)?.toInt() ?? 0,
       name: json['name']?.toString() ?? 'Product',
       brand: json['brand']?.toString() ?? 'LuxeCart',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
-      originalPrice: (json['originalPrice'] as num?)?.toDouble(),
+      originalPrice: (json['originalPrice'] as num?)?.toDouble() ??
+          (json['original_price'] as num?)?.toDouble(),
       category: json['category']?.toString() ?? 'General',
       image: primaryImage,
       images: imageList ?? (primaryImage.isNotEmpty ? [primaryImage] : const []),
       colors: colorList ?? const ['#1A1A1A', '#FF2D6F', '#6C63FF'],
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
-      reviews: (json['reviews'] as num?)?.toInt() ?? 0,
+      reviews: (json['reviews'] as num?)?.toInt() ??
+          (json['reviews_count'] as num?)?.toInt() ??
+          0,
       description: json['description']?.toString() ?? '',
       sizes: (json['sizes'] as List<dynamic>?)
               ?.map((size) => size.toString())
@@ -113,7 +127,10 @@ class Product {
       badge: json['badge']?.toString(),
       specs: specsMap,
       customerReviews: reviewsList,
-      inStock: json['inStock'] as bool? ?? true,
+      inStock: json['inStock'] == true ||
+          json['in_stock'] == true ||
+          json['in_stock'] == 1 ||
+          json['inStock'] == 1,
     );
   }
 

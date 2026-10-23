@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../data/models/cart_item.dart';
+import '../data/models/category_item.dart';
 import '../data/models/notification_item.dart';
 import '../data/models/order.dart';
 import '../data/models/product.dart';
 import '../data/models/user_address.dart';
 import '../data/models/wishlist_board.dart';
+import '../data/mock/mock_products.dart';
 import '../data/services/api_service.dart';
 import '../data/services/local_storage_service.dart';
 import '../data/services/product_service.dart';
@@ -29,7 +31,8 @@ class HomeProvider extends ChangeNotifier {
 
   int _selectedIndex = 0;
   Product? _selectedProduct;
-  List<Product> _products = [];
+  List<Product> _products = List<Product>.from(MockData.products);
+  List<CategoryItem> _categories = List<CategoryItem>.from(CategoryItem.defaultCategories);
   bool _isLoadingProducts = false;
   String? _productsError;
 
@@ -49,6 +52,7 @@ class HomeProvider extends ChangeNotifier {
   int get selectedIndex => _selectedIndex;
   Product? get selectedProduct => _selectedProduct;
   List<Product> get products => _products;
+  List<CategoryItem> get categories => _categories;
   bool get isLoadingProducts => _isLoadingProducts;
   String? get productsError => _productsError;
 
@@ -75,6 +79,7 @@ class HomeProvider extends ChangeNotifier {
     await _storage.init();
     _currentUserId = _storage.isSignedIn ? _storage.userEmail : null;
     switchUserScope(_currentUserId);
+    loadAllData();
   }
 
   /// Switch the active user session boundary to isolate private user data from guest/other users.
@@ -567,16 +572,37 @@ class HomeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- Product Fetching ---
-  Future<void> loadProducts() async {
-    if (_isLoadingProducts) return;
+  // --- Product & Category Fetching ---
+  Future<void> loadCategories() async {
+    try {
+      final apiCats = await _apiService.getCategories();
+      if (apiCats.isNotEmpty) {
+        _categories = apiCats;
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> loadAllData() async {
+    await Future.wait([
+      loadProducts(),
+      loadCategories(),
+      _syncWithBackend(),
+    ]);
+  }
+
+  Future<void> loadProducts({String? category, String? search}) async {
+    if (_isLoadingProducts && _products.length > MockData.products.length) return;
 
     _isLoadingProducts = true;
     _productsError = null;
     notifyListeners();
 
     try {
-      _products = await _productService.fetchProducts();
+      final fetched = await _productService.fetchProducts(category: category, search: search);
+      if (fetched.isNotEmpty) {
+        _products = fetched;
+      }
     } catch (e) {
       _productsError = e.toString();
     } finally {

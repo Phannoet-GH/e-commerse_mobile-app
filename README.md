@@ -35,42 +35,36 @@ Comprehensive engineering and academic documentation is available in the [`docs/
 ## 🏗️ Architecture & Project Structure
 
 ```
-se_shop_e_commerce_app/
-├── docs/                               # Comprehensive Project Documentation
-│   ├── 01_ARCHITECTURE.md             # System Architecture & Component Design
-│   ├── 02_API_SPECIFICATION.md        # REST API Reference & Schemas
-│   ├── 03_DATABASE_SCHEMA.md          # Database ERD & Migration Engine
-│   ├── 04_MOBILE_CLIENT.md            # Flutter Design System & State Management
-│   └── 05_DEPLOYMENT_RUNBOOK.md       # Evaluator Setup & Test Runbook
-├── backend/                            # Self-Hosted PHP 8.x REST API & MySQL Layer
-│   ├── index.php                      # Front Controller & Native Router
-│   ├── config/Database.php            # Dual MySQL & SQLite Fallback Connection
-│   ├── db/
-│   │   ├── migrate.php                # CLI Database Migration Tool
-│   │   ├── MigrationRunner.php        # Migration Runner with Batch Tracking
-│   │   ├── schema.sql                 # MySQL 5.7/8.x Schema
-│   │   ├── seed.php                   # 50 Products & Coupon Seed Script
-│   │   └── migrations/                # 10 Atomic Versioned Migrations
-│   ├── security/                      # Csrf, Sanitizer, and SecurityHeaders
-│   ├── models/                        # Active Record Models (Product, User, Order...)
-│   ├── test_all_endpoints.php         # 10/10 Endpoint Diagnostic Suite
-│   └── test_security.php              # Automated Security Test Suite (SQLi, CSRF, XSS)
-├── lib/                               # Flutter Mobile Client
-│   ├── app/
-│   │   ├── ecommerce_app.dart         # Root App Orchestrator & Routing
-│   │   ├── app_providers.dart         # Global MultiProvider
-│   │   └── main_shell.dart            # Frosted Glass Capsule Navigation Shell
-│   ├── core/                          # Design System, Theme Tokens & Widgets
-│   ├── data/
-│   │   ├── models/                    # Data Models (Product, Order, WishlistBoard...)
-│   │   ├── services/                  # ApiService & LocalStorageService
-│   │   └── mock/                      # 50 Mock Products & Fallback Catalog
-│   ├── providers/
-│   │   ├── home_provider.dart         # Cart, Favorites, Wishlists, Orders & Search
-│   │   └── session_provider.dart      # User Auth & Guest Lifecycle
-│   └── presentation/                  # Screens & UI Views (Splash, Onboarding, Home...)
-└── test/
-    └── widget_test.dart               # 23 Passing Flutter Test Suites
+Final_term/
+├── backend/                            # Independent PHP 8.x REST API Backend
+│   ├── api/                           # Dedicated Modular API Endpoints
+│   │   ├── auth.php                   # Authentication & User Profile
+│   │   ├── products.php               # Catalog & Product Detail
+│   │   ├── categories.php             # Category Filter API
+│   │   ├── orders.php                 # Orders & Package Tracking
+│   │   ├── addresses.php              # Shipping Address Management
+│   │   ├── wishlists.php              # Wishlist Boards & Favorites
+│   │   ├── reviews.php                # Product Reviews & Ratings
+│   │   ├── coupons.php                # Promo Codes & Discounts
+│   │   └── health.php                 # System Status & CSRF Tokens
+│   ├── config/                        # Database Connection & CORS Settings
+│   ├── data/ecommerce.db              # Auto-provisioned SQLite Fallback Database
+│   ├── db/                            # Versioned Migrations & 50-Product Seeder
+│   ├── models/                        # Active Record Data Models
+│   ├── security/                      # CSRF Guard, Input Sanitizer, CSP Headers
+│   ├── index.php                      # REST API Router & Dispatcher
+│   ├── run.bat                        # 1-Click Server Startup Script
+│   └── test_all_endpoints.php         # 16-Endpoint Diagnostic Suite
+├── se_shop_e_commerce_app/             # Flutter Mobile Client Tier
+│   ├── docs/                          # Comprehensive Technical Documentation
+│   │   ├── 01_ARCHITECTURE.md         # System Architecture & Component Design
+│   │   ├── 02_API_SPECIFICATION.md    # REST API Reference & Schemas
+│   │   ├── 03_DATABASE_SCHEMA.md      # Database ERD & Migration Engine
+│   │   ├── 04_MOBILE_CLIENT.md        # Flutter Design System & State Management
+│   │   └── 05_DEPLOYMENT_RUNBOOK.md   # Evaluator Setup & Test Runbook
+│   ├── lib/                           # Flutter Source (Presentation, State & Models)
+│   └── test/                          # 23 Passing Flutter Test Suites
+└── SE Shop.fig                         # Figma Mobile UI/UX Design System
 ```
 
 ---
@@ -81,17 +75,23 @@ For full step-by-step evaluator instructions, please refer to **[05. Deployment 
 
 ### 1. Backend & Database Setup
 ```bash
+# Navigate to the backend directory:
+cd ../backend
+
 # 1. Reset database, run all 10 migrations & seed 50 luxury products
-php backend/db/migrate.php fresh --seed
+php db/migrate.php fresh --seed
 
-# 2. Start PHP Built-in Server on port 8000
-php -S 0.0.0.0:8000 backend/index.php
+# 2. Start PHP Built-in Server on port 8000 (or double-click run.bat)
+php -S 0.0.0.0:8000 index.php
 
-# 3. Run backend diagnostic test suite (10/10 endpoints)
-php backend/test_all_endpoints.php
+# 3. Run backend diagnostic test suite (16/16 endpoints pass)
+php test_all_endpoints.php
 
 # 4. Run automated security test suite (CSRF, SQLi, XSS)
-php backend/test_security.php
+php test_security.php
+
+# 5. Run Scramble & Fuzz testing suite (24 resilience & boundary tests)
+php test_scramble_api.php
 ```
 
 ### 2. Flutter Mobile Application
