@@ -8,6 +8,7 @@ import '../onboarding/onboarding_screen.dart';
 import '../orders/orders_screen.dart';
 import 'address_manager_screen.dart';
 import 'faq_screen.dart';
+import 'login_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -120,6 +121,20 @@ class ProfileScreen extends StatelessWidget {
     final homeProvider = context.watch<HomeProvider>();
     final isSignedIn = session.isSignedIn;
 
+    // 🔒 Guest Mode (No Account): Display Login Screen directly (Konfulon flow)
+    if (!isSignedIn) {
+      return LoginScreen(
+        onLoginSuccess: () {
+          final email = session.userEmail;
+          homeProvider.switchUserScope(email);
+          homeProvider.setSelectedIndex(0);
+        },
+        onNavigateToRegister: () => context.read<SessionProvider>().openRegister(),
+        onForgotPassword: () => context.read<SessionProvider>().openForgotPassword(),
+        onBack: () => homeProvider.setSelectedIndex(0),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9FB),
       body: SafeArea(
@@ -154,18 +169,17 @@ class ProfileScreen extends StatelessWidget {
                           color: Color(0xFF1A1A1A),
                         ),
                       ),
-                      if (isSignedIn)
-                        IconButton(
-                          onPressed: () => _showEditProfileDialog(context),
-                          icon: const Icon(Icons.edit_outlined),
-                          color: const Color(0xFF1A1A1A),
-                          tooltip: 'Edit Profile',
-                        ),
+                      IconButton(
+                        onPressed: () => _showEditProfileDialog(context),
+                        icon: const Icon(Icons.edit_outlined),
+                        color: const Color(0xFF1A1A1A),
+                        tooltip: 'Edit Profile',
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
 
-                  // Profile / Guest Banner Card
+                  // Profile Member Banner Card
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -179,123 +193,72 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: isSignedIn
-                        ? Row(
-                            children: [
-                              Container(
-                                width: 56,
-                                height: 56,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    colors: [Color(0xFFFF2D6F), Color(0xFF6C63FF)],
-                                  ),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    session.userName.isNotEmpty ? session.userName[0].toUpperCase() : 'U',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 56,
+                          height: 56,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [Color(0xFFFF2D6F), Color(0xFF6C63FF)],
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              session.userName.isNotEmpty ? session.userName[0].toUpperCase() : 'U',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
                               ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      session.userName,
-                                      style: const TextStyle(
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF1A1A1A),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      session.userEmail,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey.shade600,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFFFF0F5),
-                                        borderRadius: BorderRadius.circular(999),
-                                      ),
-                                      child: const Text(
-                                        'VIP Gold Member',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFFFF2D6F),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          )
-                        : Column(
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 50,
-                                    height: 50,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade100,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(Icons.person_outline_rounded, color: Colors.grey, size: 26),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  const Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Guest Shopper',
-                                          style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-                                        ),
-                                        SizedBox(height: 2),
-                                        Text(
-                                          'Sign in to sync your bag, orders & rewards',
-                                          style: TextStyle(fontSize: 11, color: Colors.grey),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                              Text(
+                                session.userName,
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1A1A1A),
+                                ),
                               ),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                width: double.infinity,
-                                height: 42,
-                                child: ElevatedButton(
-                                  onPressed: () => context.read<SessionProvider>().openSignIn(),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFFF2D6F),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
+                              const SizedBox(height: 2),
+                              Text(
+                                session.userEmail,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF0F5),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: const Text(
+                                  'VIP Gold Member',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFFF2D6F),
                                   ),
-                                  child: const Text('Sign In / Register', style: TextStyle(fontWeight: FontWeight.bold)),
                                 ),
                               ),
                             ],
                           ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 14),
 

@@ -236,7 +236,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 18),
 
-              // Social Login Buttons (Google & Facebook)
+              // Social Login Buttons (Google & Gmail)
               Row(
                 children: [
                   Expanded(
@@ -269,7 +269,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const SizedBox(width: 14),
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => _handleSocialRegister('facebook'),
+                      onPressed: () => _handleSocialRegister('gmail'),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -280,10 +280,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
-                          Icon(Icons.facebook_rounded, color: Color(0xFF1877F2), size: 24),
+                          Icon(Icons.mail_rounded, color: Color(0xFFEA4335), size: 22),
                           SizedBox(width: 8),
                           Text(
-                            'Facebook',
+                            'Gmail',
                             style: TextStyle(
                               color: Color(0xFF1A1A1A),
                               fontWeight: FontWeight.bold,

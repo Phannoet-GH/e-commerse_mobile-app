@@ -176,6 +176,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         ),
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'YOUR STYLE, DELIVERED',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.90),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 2.5,
+                      ),
+                    ),
                   ],
                 ),
               ),

@@ -122,10 +122,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Welcome to LuxeCart'), findsOneWidget);
-    expect(find.text('Continue as Guest'), findsWidgets);
+    expect(find.text('Skip'), findsOneWidget);
 
-    // Tap Continue as Guest
-    await tester.tap(find.text('Continue as Guest').first);
+    // Tap Skip
+    await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
 
     // Now on HomeScreen
@@ -151,10 +151,10 @@ void main() {
 
     // Verify Onboarding Screen is presented
     expect(find.text('Welcome to LuxeCart'), findsOneWidget);
-    expect(find.text('Continue as Guest'), findsWidgets);
+    expect(find.text('Skip'), findsOneWidget);
 
-    // Tap Continue as Guest
-    await tester.tap(find.text('Continue as Guest').first);
+    // Tap Skip
+    await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
 
     // Now on HomeScreen
@@ -648,10 +648,10 @@ void main() {
     // Slide 1
     expect(find.text('Welcome to LuxeCart'), findsOneWidget);
     expect(find.text('✨ SE SHOP COLLECTION 2026'), findsOneWidget);
-    expect(find.text('Continue as Guest'), findsOneWidget);
+    expect(find.text('Skip'), findsOneWidget);
 
-    // Tap Continue as Guest
-    await tester.tap(find.text('Continue as Guest'));
+    // Tap Skip
+    await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
     expect(guestTapped, isTrue);
 
@@ -663,7 +663,8 @@ void main() {
     await tester.tap(find.text('Next'));
     await tester.pumpAndSettle();
 
-    // Slide 3 Sign In
+    // Slide 3 Get Started & Sign In
+    expect(find.text('Get Started'), findsOneWidget);
     expect(find.text('Sign In'), findsOneWidget);
     await tester.tap(find.text('Sign In'));
     await tester.pumpAndSettle();
@@ -731,7 +732,7 @@ void main() {
     expect(find.text('Sign In with New Password'), findsOneWidget);
   });
 
-  testWidgets('LoginScreen supports Google and Facebook 1-tap social login',
+  testWidgets('LoginScreen supports Google 1-tap social login',
       (WidgetTester tester) async {
     bool loginSuccess = false;
     final sessionProvider = SessionProvider();
@@ -751,18 +752,18 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Google'), findsOneWidget);
-    expect(find.text('Facebook'), findsOneWidget);
+    expect(find.text('Sign Up with Google'), findsOneWidget);
     expect(find.text('Forgot Password?'), findsOneWidget);
 
     // Ensure Google button is visible in scrollview and tap
-    final googleBtn = find.text('Google');
+    final googleBtn = find.text('Sign Up with Google');
     await tester.ensureVisible(googleBtn);
     await tester.tap(googleBtn);
     await tester.pumpAndSettle();
 
     expect(loginSuccess, isTrue);
     expect(sessionProvider.isSignedIn, isTrue);
+    expect(sessionProvider.userName, equals('Google Member'));
   });
 
   testWidgets('LoginScreen verifies credentials against database rejecting unknown users and accepting registered users',
@@ -958,9 +959,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 150));
     await tester.pumpAndSettle();
 
-    // 1. App starts on Onboarding -> Continue as Guest
-    if (find.text('Continue as Guest').evaluate().isNotEmpty) {
-      await tester.tap(find.text('Continue as Guest').first);
+    // 1. App starts on Onboarding -> Skip
+    if (find.text('Skip').evaluate().isNotEmpty) {
+      await tester.tap(find.text('Skip').first);
       await tester.pumpAndSettle();
     }
 
@@ -968,15 +969,11 @@ void main() {
     homeProvider.setSelectedIndex(4);
     await tester.pumpAndSettle();
     expect(homeProvider.selectedIndex, 4);
-    expect(find.text('Guest Shopper'), findsOneWidget);
 
-    // 3. Tap 'Sign In / Register' button from Profile
-    final signInRegisterBtn = find.text('Sign In / Register');
-    await tester.ensureVisible(signInRegisterBtn);
-    await tester.tap(signInRegisterBtn);
-    await tester.pumpAndSettle();
+    // 3. Profile directly displays Login screen when user has no account
+    expect(find.text('CURATED LUXURY & MODERN ESSENTIALS'), findsOneWidget);
 
-    // 4. Now on LoginScreen -> Enter database credentials and Sign In
+    // 4. Enter database credentials directly on Profile (LoginScreen) and Sign In
     final textFields = find.byType(TextField);
     await tester.enterText(textFields.at(0), 'emma.wills@example.com');
     await tester.enterText(textFields.at(1), 'password123');

@@ -363,6 +363,12 @@ class HomeProvider extends ChangeNotifier {
       _promoDiscountFlat = 0.0;
       notifyListeners();
       return null; // Success
+    } else if (code == 'LUXE10' || code == 'KONFULON10' || code == 'KONFULON') {
+      _appliedPromoCode = 'LUXE10';
+      _promoDiscountPercent = 0.10;
+      _promoDiscountFlat = 0.0;
+      notifyListeners();
+      return null;
     } else if (code == 'SAVE10') {
       _appliedPromoCode = 'SAVE10';
       _promoDiscountPercent = 0.0;
@@ -583,18 +589,15 @@ class HomeProvider extends ChangeNotifier {
     } catch (_) {}
   }
 
-  Future<void> loadAllData({Duration minDelay = Duration.zero}) async {
+  Future<void> loadAllData() async {
     _isLoadingProducts = true;
     _productsError = null;
     notifyListeners();
 
-    final delayFuture = minDelay > Duration.zero ? Future.delayed(minDelay) : null;
-
     await Future.wait([
-      loadProducts(minDelay: minDelay),
+      loadProducts(),
       loadCategories(),
       _syncWithBackend(),
-      if (delayFuture != null) delayFuture,
     ]);
 
     _isLoadingProducts = false;
@@ -604,17 +607,13 @@ class HomeProvider extends ChangeNotifier {
   Future<void> loadProducts({
     String? category,
     String? search,
-    Duration minDelay = Duration.zero,
   }) async {
     _isLoadingProducts = true;
     _productsError = null;
     notifyListeners();
 
-    final delayFuture = minDelay > Duration.zero ? Future.delayed(minDelay) : null;
-
     try {
       final fetched = await _productService.fetchProducts(category: category, search: search);
-      if (delayFuture != null) await delayFuture;
       if (_productService.lastError != null) {
         _productsError = _productService.lastError;
       } else {
@@ -624,7 +623,6 @@ class HomeProvider extends ChangeNotifier {
         _products = fetched;
       }
     } catch (e) {
-      if (delayFuture != null) await delayFuture;
       _productsError = e.toString();
     } finally {
       _isLoadingProducts = false;

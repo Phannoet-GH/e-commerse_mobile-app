@@ -221,8 +221,21 @@ class SessionProvider extends ChangeNotifier {
     String? email,
     String? name,
   }) async {
-    final resolvedName = name ?? (provider == 'google' ? 'Google Member' : 'Facebook Member');
-    final resolvedEmail = email ?? (provider == 'google' ? 'google.user@example.com' : 'facebook.user@example.com');
+    final String defaultName;
+    final String defaultEmail;
+    if (provider == 'google') {
+      defaultName = 'Google Member';
+      defaultEmail = 'google.user@example.com';
+    } else if (provider == 'gmail') {
+      defaultName = 'Gmail Member';
+      defaultEmail = 'gmail.user@example.com';
+    } else {
+      defaultName = 'Social Member';
+      defaultEmail = '$provider.user@example.com';
+    }
+
+    final resolvedName = name ?? defaultName;
+    final resolvedEmail = email ?? defaultEmail;
     await _storage.saveRegisteredUser(
       name: resolvedName,
       email: resolvedEmail,

@@ -429,36 +429,82 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
             ),
 
-            // 1. Shipping Address Card
+            // 1. Shipping Address Card (Konfulon-style Location Pinning & Address Setup)
             _CheckoutCard(
-              title: 'Shipping Address',
-              trailingAction: TextButton(
+              title: 'Delivery Address & Location',
+              trailingAction: TextButton.icon(
                 onPressed: _showAddressPicker,
-                child: const Text('Change', style: TextStyle(color: Color(0xFFFF2D6F), fontWeight: FontWeight.bold)),
+                icon: const Icon(Icons.edit_location_alt_rounded, size: 16, color: Color(0xFFFF2D6F)),
+                label: const Text('Change', style: TextStyle(color: Color(0xFFFF2D6F), fontWeight: FontWeight.bold)),
               ),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFFF0F5),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.location_on_outlined, color: Color(0xFFFF2D6F), size: 22),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(_recipientName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                        const SizedBox(height: 3),
-                        Text(
-                          _selectedAddress,
-                          style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFFF0F5),
+                          shape: BoxShape.circle,
                         ),
-                      ],
+                        child: const Icon(Icons.location_on_rounded, color: Color(0xFFFF2D6F), size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(_recipientName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE8F5E9),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.pin_drop_rounded, size: 11, color: Color(0xFF2E7D32)),
+                                      SizedBox(width: 3),
+                                      Text('PINNED', style: TextStyle(color: Color(0xFF2E7D32), fontSize: 9, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              _selectedAddress,
+                              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _notesController,
+                    decoration: InputDecoration(
+                      hintText: 'Delivery note (e.g. Building, Floor, Landmark)',
+                      prefixIcon: const Icon(Icons.notes_rounded, size: 18, color: Colors.grey),
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey.shade200),
+                      ),
                     ),
+                    style: const TextStyle(fontSize: 12),
                   ),
                 ],
               ),
@@ -498,38 +544,46 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
             const SizedBox(height: 14),
 
-            // 3. Payment Methods
+            // 3. Payment Methods (Konfulon-style Localized Payments)
             _CheckoutCard(
               title: 'Payment Method',
               child: Column(
                 children: [
                   _PaymentOption(
-                    label: 'Visa Card •••• 4589',
-                    icon: Icons.credit_card_rounded,
-                    badge: 'DEFAULT',
-                    selected: _selectedPayment.contains('Visa') || _selectedPayment.contains('Credit Card'),
-                    onTap: () => setState(() => _selectedPayment = 'Credit Card (•••• 4589)'),
-                  ),
-                  const SizedBox(height: 8),
-                  _PaymentOption(
-                    label: 'PayPal Express',
-                    icon: Icons.account_balance_wallet_outlined,
-                    selected: _selectedPayment == 'PayPal',
-                    onTap: () => setState(() => _selectedPayment = 'PayPal'),
-                  ),
-                  const SizedBox(height: 8),
-                  _PaymentOption(
-                    label: 'Apple Pay / Google Pay',
-                    icon: Icons.phone_android_rounded,
-                    selected: _selectedPayment.contains('Pay'),
-                    onTap: () => setState(() => _selectedPayment = 'Apple / Google Pay'),
+                    label: 'ABA PAY / KHQR (Instant Scan)',
+                    icon: Icons.qr_code_scanner_rounded,
+                    badge: 'POPULAR',
+                    selected: _selectedPayment.contains('ABA') || _selectedPayment.contains('KHQR'),
+                    onTap: () => setState(() => _selectedPayment = 'ABA PAY / KHQR'),
                   ),
                   const SizedBox(height: 8),
                   _PaymentOption(
                     label: 'Cash on Delivery (COD)',
                     icon: Icons.payments_outlined,
-                    selected: _selectedPayment.contains('Cash'),
-                    onTap: () => setState(() => _selectedPayment = 'Cash on Delivery'),
+                    badge: 'ZERO FEE',
+                    selected: _selectedPayment.contains('Cash') || _selectedPayment.contains('COD'),
+                    onTap: () => setState(() => _selectedPayment = 'Cash on Delivery (COD)'),
+                  ),
+                  const SizedBox(height: 8),
+                  _PaymentOption(
+                    label: 'Credit / Debit Card (•••• 4589)',
+                    icon: Icons.credit_card_rounded,
+                    selected: _selectedPayment.contains('Credit Card') || _selectedPayment.contains('Visa'),
+                    onTap: () => setState(() => _selectedPayment = 'Credit Card (•••• 4589)'),
+                  ),
+                  const SizedBox(height: 8),
+                  _PaymentOption(
+                    label: 'PiPay / Wing Mobile Wallet',
+                    icon: Icons.account_balance_wallet_outlined,
+                    selected: _selectedPayment.contains('PiPay') || _selectedPayment.contains('Wing'),
+                    onTap: () => setState(() => _selectedPayment = 'PiPay / Wing Wallet'),
+                  ),
+                  const SizedBox(height: 8),
+                  _PaymentOption(
+                    label: 'Apple Pay / Google Pay',
+                    icon: Icons.phone_android_rounded,
+                    selected: _selectedPayment.contains('Apple') || _selectedPayment.contains('Google Pay'),
+                    onTap: () => setState(() => _selectedPayment = 'Apple / Google Pay'),
                   ),
                 ],
               ),

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -7,6 +8,8 @@ class OnboardingScreen extends StatefulWidget {
   final VoidCallback? onRegister;
   final VoidCallback? onForgotPassword;
   final Function(String provider)? onSocialLogin;
+  final bool autoSlide;
+  final Duration autoSlideDuration;
 
   const OnboardingScreen({
     super.key,
@@ -16,6 +19,8 @@ class OnboardingScreen extends StatefulWidget {
     this.onRegister,
     this.onForgotPassword,
     this.onSocialLogin,
+    this.autoSlide = true,
+    this.autoSlideDuration = const Duration(milliseconds: 3200),
   });
 
   @override
@@ -25,30 +30,55 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  Timer? _autoSlideTimer;
 
   final List<_OnboardingPageData> _pages = const [
     _OnboardingPageData(
-      icon: Icons.shopping_bag_rounded,
+      icon: Icons.storefront_rounded,
       title: 'Welcome to LuxeCart',
-      subtitle: 'Discover trending fashion, tech & luxury accessories crafted for your elevated lifestyle.',
+      subtitle: 'Discover top-grade mobile accessories, power banks, audio gadgets, and lifestyle essentials from LuxeCart.',
       badge: '✨ SE SHOP COLLECTION 2026',
     ),
     _OnboardingPageData(
-      icon: Icons.local_offer_outlined,
-      title: 'Exclusive Deals & Vouchers',
-      subtitle: 'Unlock VIP discounts, use promo codes like LUXE20, and enjoy free shipping on top orders.',
-      badge: '🏷️ MEMBERS PRIVILEGE',
+      icon: Icons.pin_drop_rounded,
+      title: 'Accurate Map Pinning',
+      subtitle: 'Pin your precise delivery address with building and landmark notes for express courier dispatch across Cambodia.',
+      badge: '📍 LUXECART MAP DELIVERY',
     ),
     _OnboardingPageData(
-      icon: Icons.local_shipping_outlined,
-      title: 'Real-Time Order Tracking',
-      subtitle: 'Track your packages with live status milestones from fulfillment to your doorstep.',
-      badge: '🚚 EXPRESS DELIVERY',
+      icon: Icons.qr_code_scanner_rounded,
+      title: 'Fast ABA KHQR & COD',
+      subtitle: 'Checkout seamlessly using ABA PAY, local mobile wallets, or pay in cash upon doorstep delivery.',
+      badge: '⚡ INSTANT LOCAL PAYMENTS',
     ),
   ];
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.autoSlide) {
+      _startAutoSlideTimer();
+    }
+  }
+
+  void _startAutoSlideTimer() {
+    _autoSlideTimer?.cancel();
+    _autoSlideTimer = Timer.periodic(widget.autoSlideDuration, (timer) {
+      if (!mounted || !_pageController.hasClients) return;
+      if (_currentPage < _pages.length - 1) {
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOutCubic,
+        );
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  @override
   void dispose() {
+    _autoSlideTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -59,8 +89,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         duration: const Duration(milliseconds: 350),
         curve: Curves.easeInOutCubic,
       );
+      if (_currentPage + 1 >= _pages.length - 1) {
+        _autoSlideTimer?.cancel();
+      }
     } else {
-      (widget.onSignIn ?? widget.onSignInOrRegister)();
+      _autoSlideTimer?.cancel();
+      widget.onContinueAsGuest();
     }
   }
 
@@ -146,20 +180,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                   ],
                 ),
-                const Spacer(),
+                const SizedBox(height: 8),
 
                 // Multi-Slide Carousel
-                SizedBox(
-                  height: 320,
+                Expanded(
                   child: PageView.builder(
                     controller: _pageController,
                     itemCount: _pages.length,
-                    onPageChanged: (idx) => setState(() => _currentPage = idx),
+                    onPageChanged: (idx) {
+                      setState(() => _currentPage = idx);
+                      if (idx >= _pages.length - 1) {
+                        _autoSlideTimer?.cancel();
+                      }
+                    },
                     itemBuilder: (context, index) {
                       final item = _pages[index];
-                      return Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+                      return Center(
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
                           // Luxury Icon Circle with Glow
                           Container(
                             padding: const EdgeInsets.all(22),
@@ -239,44 +280,47 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ),
                           ),
                         ],
-                      );
-                    },
-                  ),
-                ),
-
-                // Fluid Capsule Page Indicators
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    _pages.length,
-                    (index) => AnimatedContainer(
-                      duration: const Duration(milliseconds: 280),
-                      curve: Curves.easeOutCubic,
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      width: _currentPage == index ? 24 : 7,
-                      height: 7,
-                      decoration: BoxDecoration(
-                        color: _currentPage == index
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.35),
-                        borderRadius: BorderRadius.circular(4),
-                        boxShadow: _currentPage == index
-                            ? [
-                                BoxShadow(
-                                  color: Colors.white.withValues(alpha: 0.4),
-                                  blurRadius: 8,
-                                  spreadRadius: 1,
-                                ),
-                              ]
-                            : null,
                       ),
                     ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            // Fluid Capsule Page Indicators
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                _pages.length,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 280),
+                  curve: Curves.easeOutCubic,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: _currentPage == index ? 24 : 7,
+                  height: 7,
+                  decoration: BoxDecoration(
+                    color: _currentPage == index
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(4),
+                    boxShadow: _currentPage == index
+                        ? [
+                            BoxShadow(
+                              color: Colors.white.withValues(alpha: 0.4),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ]
+                        : null,
                   ),
                 ),
+              ),
+            ),
 
-                const Spacer(),
+            const SizedBox(height: 12),
 
-                // Action Area
+            // Action Area
                 if (!isLastPage) ...[
                   // Primary Action Button (Next)
                   SizedBox(
@@ -310,177 +354,66 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 6),
-
-                  // Secondary Action (Continue as Guest)
+                ] else ...[
+                  // Final Slide Action - Simple Konfulon Design
                   SizedBox(
                     width: double.infinity,
-                    height: 40,
-                    child: TextButton(
+                    height: 52,
+                    child: ElevatedButton(
                       onPressed: widget.onContinueAsGuest,
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                      ),
-                      child: Text(
-                        'Continue as Guest',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.95),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.3,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFFFF2D6F),
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
                         ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Text(
+                            'Get Started',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Icon(Icons.arrow_forward_rounded, size: 20),
+                        ],
                       ),
                     ),
                   ),
-                ] else ...[
-                  // Final Slide Full Auth Hub
-                  Row(
-                    children: [
-                      // Sign In Button
-                      Expanded(
-                        child: SizedBox(
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: _handleSignIn,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xFFFF2D6F),
-                              elevation: 4,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                            child: const Text(
-                              'Sign In',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Register Button
-                      Expanded(
-                        child: SizedBox(
-                          height: 50,
-                          child: OutlinedButton(
-                            onPressed: _handleRegister,
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              side: const BorderSide(color: Colors.white, width: 1.8),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                            child: const Text(
-                              'Register',
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 10),
 
-                  // Social Logins (Google & Facebook)
+                  // Simple Member Sign In Link
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: 44,
-                          child: ElevatedButton(
-                            onPressed: () => _handleSocial('google'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white.withValues(alpha: 0.18),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                side: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
-                                Icon(Icons.g_mobiledata_rounded, color: Colors.white, size: 24),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Google',
-                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
+                      Text(
+                        'Already have an account? ',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.88),
+                          fontSize: 13,
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: SizedBox(
-                          height: 44,
-                          child: ElevatedButton(
-                            onPressed: () => _handleSocial('facebook'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white.withValues(alpha: 0.18),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                side: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: const [
-                                Icon(Icons.facebook_rounded, color: Colors.white, size: 18),
-                                SizedBox(width: 6),
-                                Text(
-                                  'Facebook',
-                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
+                      GestureDetector(
+                        onTap: _handleSignIn,
+                        child: const Text(
+                          'Sign In',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
                           ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-
-                  // Bottom Utilities: Guest & Forgot Password
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextButton(
-                        onPressed: widget.onContinueAsGuest,
-                        child: Text(
-                          'Continue as Guest',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.95),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: widget.onForgotPassword ?? () => _handleSignIn(),
-                        child: Text(
-                          'Forgot Password?',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.95),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ],
             ),
