@@ -1,0 +1,11 @@
+{
+  "name": "se-shop-e-commerce-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LuxeCart Mobile & Web E-Commerce Application",
+  "scripts": {
+    "build": "flutter build web --release",
+    "test": "flutter test"
+  },
+  "devDependencies": {}
+}
